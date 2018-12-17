@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="32dp"
+        tools:context=".LoginActivity"
+>
+    <LinearLayout
+            android:layout_centerVertical="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_alignParentStart="true">
+        <android.support.constraint.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/constraintLayout2" tools:layout_editor_absoluteY="8dp">
+            <ImageView
+                    android:id="@+id/imageView2"
+                    android:src="@drawable/logo_timeruler_3"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:layout_marginStart="8dp" android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                    android:textColor="@color/colorAccent"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:text="@string/timeruler"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textView4"
+                    app:layout_constraintTop_toTopOf="@+id/imageView2"
+                    app:layout_constraintStart_toEndOf="@+id/imageView2" android:layout_marginStart="8dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/imageView2"/>
+
+        </android.support.constraint.ConstraintLayout>
+        <android.support.constraint.ConstraintLayout
+                android:id="@+id/constraint_information"
+                android:padding="24dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:layout_editor_absoluteX="32dp" tools:layout_editor_absoluteY="217dp">
+            <TextView
+                    android:text="@string/place"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/textView3"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                    android:text=" __,__,__,__"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="@+id/textView2"
+                    app:layout_constraintStart_toEndOf="@+id/textView2"
+                    app:layout_constraintBottom_toBottomOf="@+id/textView2"/>
+
+            <TextView
+                    android:text="@string/geopoint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@+id/textView3"
+                    app:layout_constraintStart_toStartOf="@+id/textView3"
+                    android:id="@+id/textView2"/>
+
+            <TextView
+                    android:text="____,____ , _____,_____"
+                    android:id="@+id/tv_longlat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="@+id/textView3"
+                    app:layout_constraintStart_toEndOf="@+id/textView3"
+                    app:layout_constraintBottom_toBottomOf="@+id/textView3"/>
+        </android.support.constraint.ConstraintLayout>
+
+        <android.support.constraint.ConstraintLayout
+                android:id="@+id/constraint_functions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:layout_editor_absoluteX="8dp">
+
+
+            <EditText
+
+                    android:id="@+id/et_username"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/green"
+                    android:ems="10"
+                    android:hint="@string/hint_username"
+                    android:padding="14dp"
+                    android:background="@drawable/edit_text_login_border"
+                    android:inputType="number"
+                    android:textSize="16sp"
+                    android:textColorHint="@color/green"
+                    android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"/>
+
+            <EditText
+                    android:id="@+id/et_password"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:textColor="@color/green"
+                    android:hint="@string/hint_password"
+                    android:textColorHint="@color/green"
+                    android:padding="14dp"
+                    android:background="@drawable/edit_text_login_border"
+                    android:inputType="number"
+                    android:textSize="16sp"
+                    app:layout_constraintEnd_toEndOf="@+id/et_username"
+                    app:layout_constraintStart_toStartOf="@+id/et_username" android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@+id/et_username"/>
+
+            <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="Save login"
+                    android:textColorHint="@color/blue"
+                    android:id="@+id/checkBox" android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@+id/et_password" android:layout_marginStart="8dp"
+                    app:layout_constraintStart_toStartOf="@+id/et_password"/>
+
+            <Button
+
+                    android:textColor="@color/white"
+                    android:id="@+id/btn_login"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login"
+                    android:background="@drawable/btn_login_bg"
+                    android:layout_marginTop="48dp"
+                    app:layout_constraintTop_toBottomOf="@+id/checkBox"
+                    app:layout_constraintEnd_toEndOf="@+id/et_password"
+                    app:layout_constraintStart_toStartOf="@+id/et_password"
+                    app:layout_constraintHorizontal_bias="0.25"/>
+        </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
+</RelativeLayout>
