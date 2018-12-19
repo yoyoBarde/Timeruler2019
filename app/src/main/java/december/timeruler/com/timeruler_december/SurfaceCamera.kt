@@ -7,6 +7,9 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Build
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
@@ -29,6 +32,7 @@ import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import kotlinx.android.synthetic.main.activity_camera_source.*
 import org.jetbrains.anko.*
+import java.io.ByteArrayOutputStream
 
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -39,7 +43,8 @@ class SurfaceCamera : AppCompatActivity() {
     companion object {
         const val REQUEST_CODE = 11111
     }
-
+    private var locationManager: LocationManager? = null
+    private var locationListener: LocationListener? = null
     lateinit var surfaceView: SurfaceView
     lateinit var cameraSource: CameraSource
     lateinit var  mBtn_in: Button
@@ -51,14 +56,13 @@ class SurfaceCamera : AppCompatActivity() {
     lateinit var my_ic_face: ImageView
     lateinit var globalUserBitmap:Bitmap
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_source)
         my_ic_face = findViewById(R.id.iv_facedetected_ic)
         my_iv_preview = findViewById<ImageView>(R.id.iv_photoPreview)
         mBtn_in = findViewById<Button>(R.id.btn_in)
         mBtn_out= findViewById<Button>(R.id.btn_out)
-
         setupDigitalClock()
 
 askPermissions()
@@ -178,6 +182,11 @@ askPermissions()
 
     }
 
+    fun getBytes(bitmap: Bitmap): ByteArray {
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream)
+        return stream.toByteArray()
+    }
     private val mShutterCallback = CameraSource.ShutterCallback {
 
 
@@ -191,6 +200,10 @@ askPermissions()
             enableButton()
             Log.e(TAG, userBitmap.toString())
             globalUserBitmap = userBitmap
+
+            var size = (globalUserBitmap.height * globalUserBitmap.width) * 4
+       Log.e(TAG,"image size"+ globalUserBitmap.byteCount + size )
+
             uiThread {
                 iv_photoPreview.visibility = View.VISIBLE
                 iv_photoPreview.setImageBitmap(userBitmap)
@@ -383,7 +396,6 @@ askPermissions()
         }
         return null
     }
-
     fun getResizedBitmap(image: Bitmap, maxSize: Int): Bitmap {
         val width = image.width
         val height = image.height
@@ -399,9 +411,6 @@ askPermissions()
 
         return Bitmap.createScaledBitmap(image, newWidth, newHeight, true)
     }
-
-
-
     fun transferData(InOrOut:String){
         disableButtons()
         var myuserName = LoginActivity.username
@@ -447,5 +456,7 @@ askPermissions()
 
     }
 
-
 }
+
+
+

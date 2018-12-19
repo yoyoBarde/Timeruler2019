@@ -33,11 +33,13 @@
     </string>
     <string name="in">IN</string>
     <string name="out">OUT</string>
-    <string name="location">Location : </string>
-    <string name="place">Place : </string>
+    <string name="location">Location:</string>
+    <string name="place">Place:</string>
     <string name="geopoint">Long/Lat :</string>
     <string name="timeruler">TIMERULER</string>
     <string name="hint_username">username</string>
     <string name="hint_password">password</string>
     <string name="login">Login</string>
+    <string name="lat">Lat:</string>
+    <string name="longti">Long:</string>
 </resources>

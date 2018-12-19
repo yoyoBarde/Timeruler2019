@@ -33,6 +33,44 @@ class LOGINDATADBHELPER(context: Context) : SQLiteOpenHelper(context, TABLE_NAME
 
         }
 
+fun getLoginData(string:String):List<LoginData>{
+var myLoginDataList = ArrayList<LoginData>()
+    var db = this.readableDatabase
+    var query = "SELECT * FROM $TABLE_NAME";
+    var data = db.rawQuery(query, null)
+
+    if(data.moveToFirst()){
+
+        do{
+           var myLoginData = LoginData(" "," ")
+           myLoginData.setUserName(data.getString(1))
+            myLoginData.setUserPass(data.getString(2))
+            myLoginDataList.add(myLoginData)
+        }
+            while (data.moveToNext())
+    }
+    return myLoginDataList
+}
+//    public List<LoginData> getLoginData(){
+//        List<LoginData> myLoginDataList = new ArrayList<LoginData>();
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        String query = "SELECT * FROM " + TABLE_NAME;
+//        Cursor data = db.rawQuery(query, null);
+//
+//        if (data.moveToFirst()) {
+//            do {
+//
+//                LoginData myLoginData = new LoginData("  ","  ");
+//                myLoginData.setUserName(data.getString(1));
+//                myLoginData.setUserPass(data.getString(2));
+//                myLoginDataList.add(myLoginData);
+//
+//            } while (data.moveToNext());
+//        }
+//
+//        return myLoginDataList;
+//
+//    }
     override fun onCreate(sqLiteDatabase: SQLiteDatabase) {
 
         val CREATE_TABLE_LOGIN_DATA = ("CREATE TABLE " + TABLE_NAME + "("

@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
     <uses-permission android:name="android.permission.READ_SYNC_STATS"/>
@@ -38,7 +38,7 @@
                 android:name="com.google.android.gms.vision.DEPENDENCIES"
                 android:value="face"/>
 
-        <activity android:name=".LoginActivity">
+        <activity android:name=".splashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -46,6 +46,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".SurfaceCamera">
+        </activity>
+
+        <activity android:name=".LoginActivity">
         </activity>
     </application>
 
