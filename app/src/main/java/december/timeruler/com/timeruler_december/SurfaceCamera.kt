@@ -1,6 +1,7 @@
 package december.timeruler.com.timeruler_december
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -43,29 +44,30 @@ class SurfaceCamera : AppCompatActivity() {
     companion object {
         const val REQUEST_CODE = 11111
     }
+
     private var locationManager: LocationManager? = null
     private var locationListener: LocationListener? = null
     lateinit var surfaceView: SurfaceView
     lateinit var cameraSource: CameraSource
-    lateinit var  mBtn_in: Button
-    lateinit var  mBtn_out: Button
+    lateinit var mBtn_in: Button
+    lateinit var mBtn_out: Button
     var globalCounter = 0
     var smileSettoWhite = true
     val TAG = "SurfaceCamera"
     lateinit var my_iv_preview: ImageView
     lateinit var my_ic_face: ImageView
-    lateinit var globalUserBitmap:Bitmap
+    lateinit var globalUserBitmap: Bitmap
 
-    override fun onCreate(savedInstanceState: Bundle?)  {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_source)
         my_ic_face = findViewById(R.id.iv_facedetected_ic)
         my_iv_preview = findViewById<ImageView>(R.id.iv_photoPreview)
         mBtn_in = findViewById<Button>(R.id.btn_in)
-        mBtn_out= findViewById<Button>(R.id.btn_out)
+        mBtn_out = findViewById<Button>(R.id.btn_out)
         setupDigitalClock()
 
-askPermissions()
+        askPermissions()
         onCreateDoables()
         mBtn_in.setOnClickListener { transferData("IN") }
         mBtn_out.setOnClickListener { transferData("OUT") }
@@ -76,7 +78,6 @@ askPermissions()
         }
 
     }
-
 
 
     private fun onCreateDoables() {
@@ -160,6 +161,7 @@ askPermissions()
 
                         }
                         if (globalCounter == 30) {
+
                             Log.e(TAG, "gwapo ka")
                             cameraSource.takePicture(mShutterCallback, mPictureCallback)
                             globalCounter = -20
@@ -187,6 +189,7 @@ askPermissions()
         bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream)
         return stream.toByteArray()
     }
+
     private val mShutterCallback = CameraSource.ShutterCallback {
 
 
@@ -194,15 +197,17 @@ askPermissions()
 
     private val mPictureCallback = CameraSource.PictureCallback { bytes ->
         // val orientation = Exif.getOrientation(bytes)
+
+
         doAsync {
-            var userBitmap =getResizedBitmap( detect(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))!!,100)
+            var userBitmap = getResizedBitmap(detect(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))!!, 100)
             cameraSource.release()
             enableButton()
             Log.e(TAG, userBitmap.toString())
             globalUserBitmap = userBitmap
 
             var size = (globalUserBitmap.height * globalUserBitmap.width) * 4
-       Log.e(TAG,"image size"+ globalUserBitmap.byteCount + size )
+            Log.e(TAG, "image size" + globalUserBitmap.byteCount + size)
 
             uiThread {
                 iv_photoPreview.visibility = View.VISIBLE
@@ -217,7 +222,7 @@ askPermissions()
 //            }
 //            // if orientation is zero we don't need to rotate this
 //
-    //            else -> {
+            //            else -> {
 //            }
 //        }
 //        //write your code here to save bitmap
@@ -233,7 +238,8 @@ askPermissions()
 //            //                finish();
         }
     }
-    fun setupDigitalClock(){
+
+    fun setupDigitalClock() {
 
         doAsync {
             var myDate = getCurrentDate()
@@ -259,6 +265,7 @@ askPermissions()
 
         }
     }
+
     fun goVibrate() {
 
         var v: Vibrator = applicationContext!!.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -285,7 +292,8 @@ askPermissions()
         val df = SimpleDateFormat("MMM dd,yyyy")
         return df.format(c.time)
     }
-    fun askPermissions(){
+
+    fun askPermissions() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (applicationContext.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -309,7 +317,8 @@ askPermissions()
             }
         }
     }
-    fun disableButtons(){
+
+    fun disableButtons() {
         doAsync {
             var myFloat: Float = 0.5.toFloat()
             uiThread {
@@ -320,17 +329,19 @@ askPermissions()
             }
         }
     }
-    fun enableButton(){
+
+    fun enableButton() {
         doAsync {
-            Log.e(TAG,"enableButtons")
-            var myFloat:Float = .99.toFloat()
+            Log.e(TAG, "enableButtons")
+            var myFloat: Float = .99.toFloat()
             uiThread {
-                mBtn_in.textColor =  ContextCompat.getColor(applicationContext,R.color.black)
-                mBtn_out.textColor =  ContextCompat.getColor(applicationContext,R.color.black)
+                mBtn_in.textColor = ContextCompat.getColor(applicationContext, R.color.black)
+                mBtn_out.textColor = ContextCompat.getColor(applicationContext, R.color.black)
                 mBtn_in.isClickable = true
                 mBtn_out.isClickable = true
                 mBtn_in.alpha = myFloat
-                mBtn_out.alpha = myFloat }
+                mBtn_out.alpha = myFloat
+            }
         }
 
     }
@@ -396,6 +407,7 @@ askPermissions()
         }
         return null
     }
+
     fun getResizedBitmap(image: Bitmap, maxSize: Int): Bitmap {
         val width = image.width
         val height = image.height
@@ -411,8 +423,11 @@ askPermissions()
 
         return Bitmap.createScaledBitmap(image, newWidth, newHeight, true)
     }
-    fun transferData(InOrOut:String){
-        disableButtons()
+
+    fun transferData(InOrOut: String) {
+
+        Log.e(TAG, "transferData")
+        //disableButtons()
         var myuserName = LoginActivity.username
         var myuserPass = LoginActivity.password
         var myuserPic = globalUserBitmap
@@ -421,9 +436,17 @@ askPermissions()
         var myuserLoginTime = getCurrentTime()
         var myuserLoginDate = getCurrentDate()
         var myuserAction = InOrOut
-        var myAttendance = Attendance(myuserName,myuserPass,myuserLong,myuserLat,myuserLoginTime,myuserLoginDate,myuserAction,myuserPic)
+        var myAttendance = Attendance(
+            myuserName,
+            myuserPass,
+            myuserLong,
+            myuserLat,
+            myuserLoginTime,
+            myuserLoginDate,
+            myuserAction,
+            myuserPic
+        )
         var myAttendanceParce = AttendanceParce()
-
         myAttendanceParce.userName = myuserName
         myAttendanceParce.userPass = myuserPass
         myAttendanceParce.userBitmap = myuserPic
@@ -433,27 +456,25 @@ askPermissions()
         myAttendanceParce.userLoginDate = myuserLoginDate
         myAttendanceParce.userAction = myuserAction
 
+        Log.e(
+            TAG,
+            "$myuserName $myuserPass $myuserLong $myuserLat $myuserLoginTime $myuserLoginDate $myuserAction ${myuserPic.toString()}"
+        )
 
 
-        Log.e(TAG,"$myuserName $myuserPass $myuserLong $myuserLat $myuserLoginTime $myuserLoginDate $myuserAction ${myuserPic.toString()}")
 
+        var gagongIntent: Intent = Intent()
+        gagongIntent.putExtra("somedata", "bogo ka")
+        gagongIntent.putExtra("userAttendance",myAttendanceParce)
+        setResult(REQUEST_CODE, gagongIntent)
+        finish()
 
-        try {
-            var intentLogin = Intent(this, LoginActivity::class.java)
-            var myIntent = intent
-            myIntent.putExtra("userAttendance",myAttendanceParce)
-            setResult(REQUEST_CODE, myIntent)
-            finish()
-            Thread.sleep(3000)
-           // startActivityForResult(intentLogin, REQUEST_CODE)
-        }
-        catch(e:InterruptedException){
-            print(e)
 
         }
 
 
-
+    interface PassData {
+        fun passstring(string: String)
     }
 
 }

@@ -17,11 +17,9 @@
 package december.timeruler.com.timeruler_december
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.location.*
 import android.os.Build
@@ -43,17 +41,24 @@ import java.lang.Exception
 import java.util.*
 import android.location.Geocoder
 import android.net.ConnectivityManager
+import android.net.NetworkInfo
+import android.net.wifi.WifiManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.KeyEvent
 import kotlinx.android.synthetic.main.activity_camera_source.*
 import org.jetbrains.anko.uiThread
 import java.net.URL
 import java.text.SimpleDateFormat
 
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : AppCompatActivity() , SurfaceCamera.PassData {
+    override fun passstring(string: String) {
+        Toast.makeText(this,string,Toast.LENGTH_SHORT).show()
+    }
+
     val TAG = "LoginActivity"
 
     companion object {
@@ -74,6 +79,8 @@ class LoginActivity : AppCompatActivity() {
         setupDigitalClock()
         myLOGINDATADBHELPER = LOGINDATADBHELPER(this)
 
+         var intentFilter =  IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        registerReceiver(wifiStateReceiver,intentFilter)
         getLoginData()
         textListener()
 //        savedInstanceState ?: supportFragmentManager.beginTransaction()
@@ -95,30 +102,31 @@ class LoginActivity : AppCompatActivity() {
             else
                 myLOGINDATADBHELPER.dropTable2()
             var myIntent = Intent(this, SurfaceCamera::class.java)
-            startActivity(myIntent)
+            startActivityForResult(myIntent,1)
 
         }
 
     }
 
-    override fun onActivityReenter(resultCode: Int, data: Intent?) {
-        super.onActivityReenter(resultCode, data)
-
-        Log.e(TAG, "ASDASD")
-
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+
         super.onActivityResult(requestCode, resultCode, data)
-        Log.e(TAG, "$requestCode $resultCode")
-        Log.e(TAG, "ASDASD")
-        if (resultCode == SurfaceCamera.REQUEST_CODE) {
-            //   OfflineData myOfflineData = data.getExtras().getParcelable("OFFLINEDATA");
-            var resultAttendance: AttendanceParce = data!!.extras.getParcelable("userAttendance")
+        Log.e(TAG,"onActivity result")
+        Log.e(TAG,"$requestCode $resultCode")
+        if (resultCode==SurfaceCamera.REQUEST_CODE) {
+            Log.e(TAG, "request")
 
-            Log.e(TAG, "result attendance - ${resultAttendance.userName} ${resultAttendance.userAction}")
-
+            var userAttendance = data!!.getParcelableExtra<AttendanceParce>("userAttendance")
+            Log.e(TAG,userAttendance.userAction + userAttendance.userLoginDate)
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        System.exit(0)
+
+        return super.onKeyDown(keyCode, event)
 
     }
 
@@ -440,6 +448,63 @@ class LoginActivity : AppCompatActivity() {
 
     }
 
+    private fun isNetworkAvailable(): Boolean {
+        lateinit var connectivityManager:ConnectivityManager
+        lateinit var activeNetworkInfo:NetworkInfo
+
+             connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+             activeNetworkInfo = connectivityManager.activeNetworkInfo
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected
+
+
+
+    }
+    private val wifiStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            //val conMan = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        //    val netInfo = conMan.activeNetworkInfo
+
+             val action = intent.action
+            Log.e(TAG,"wifiReceiver")
+
+    if(action == WifiManager.NETWORK_STATE_CHANGED_ACTION) {
+        var info = intent.getParcelableExtra<NetworkInfo>(WifiManager.EXTRA_NETWORK_INFO)
+//        var info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+        val connected = info.isConnected
+        //call your method
+        if (connected) {
+
+            Log.e(TAG, "Have wifi")
+            constraint_connection.setBackgroundColor(resources.getColor(R.color.green))
+            tv_connection.text = "Waiting for connection"
+            progressBar.visibility = View.VISIBLE
+            doAsync {
+                try {
+                    Thread.sleep(5000)
+                    runOnUiThread {
+                        constraint_connection.visibility = View.GONE
+                    }
+                } catch (e: Exception) {
+
+                }
+
+            }
+        }
+        else {
+
+            Log.e(TAG, "No Wifi")
+
+            progressBar.visibility = View.GONE
+            tv_connection.text = "No connection"
+            constraint_connection.setBackgroundColor(resources.getColor(R.color.black))
+            constraint_connection.visibility = View.VISIBLE
+        }
+    }
+
+
+        }
+    }
+
     fun textListener() {
         et_username.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -484,14 +549,14 @@ class LoginActivity : AppCompatActivity() {
         et_username.setOnClickListener {
 
             et_username.setText("")
-
             iv_close_username.visibility = View.GONE
+
         }
         et_password.setOnClickListener {
 
             et_password.setText("")
             iv_close_password.visibility = View.GONE
-        }
 
+        }
     }
 }

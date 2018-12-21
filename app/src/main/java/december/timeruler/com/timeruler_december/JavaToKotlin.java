@@ -3,6 +3,7 @@ package december.timeruler.com.timeruler_december;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,6 +11,9 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
@@ -65,4 +69,24 @@ public class JavaToKotlin {
 
     }
 
+    private BroadcastReceiver wifiStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager conMan = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo netInfo = conMan.getActiveNetworkInfo();
+
+
+            if (netInfo != null && netInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+
+            }
+            else {
+                Log.e(TAG, "Don't have Wifi Connection");
+
+
+
+
+            }
+
+        }
+    };
 }
