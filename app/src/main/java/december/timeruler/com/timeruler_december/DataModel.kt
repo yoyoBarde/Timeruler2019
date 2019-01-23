@@ -8,7 +8,60 @@ import android.os.Parcelable
 class DataModel {
 
 
-}    data class Attendance(
+}
+
+
+
+data class Login(val message:String)
+
+data class PersonalInformation (val data: PersonalInfo)
+
+
+data class PersonalInfo(val idno:String ,
+                        val name:String ,
+                        val position:String ,
+                        val userlevel:String ,
+                        val message:String)
+
+
+
+data class UserList(val data: List<UserListData>)
+data class UserListData(val idno:String ,
+                        val name:String ,
+                        val password:String)
+
+data class UserLogsList(val data: List<UserLogs>)
+data class UserLogs(
+    var idno: String,
+    var name:String,
+    var date:String,
+    var time:String,
+    var action:String,
+    var bitmap:Bitmap,
+    var image:String,
+    var latitude:String,
+    var longtitude:String
+)
+
+
+
+
+
+
+
+
+data class APIMODEL(
+    var companyIP:String,
+    var companyName:String
+
+)
+
+
+
+
+
+
+data class Attendance(
     var userName: String,
     var userPass: String,
     var userLong: String,
@@ -18,6 +71,9 @@ class DataModel {
     var userAction: String,
     var userBitmap: Bitmap
 )
+
+
+
 
      class AttendanceParce() :Parcelable {
 
@@ -31,14 +87,14 @@ class DataModel {
          lateinit var userBitmap: Bitmap
 
          constructor(parcel: Parcel) : this() {
-             userName = parcel.readString()
-             userPass = parcel.readString()
-             userLong = parcel.readString()
-             userLat = parcel.readString()
-             userLoginTime = parcel.readString()
-             userLoginDate = parcel.readString()
-             userAction = parcel.readString()
-             userBitmap = parcel.readParcelable(Bitmap::class.java.classLoader)
+             userName = parcel.readString()!!
+             userPass = parcel.readString()!!
+             userLong = parcel.readString()!!
+             userLat = parcel.readString()!!
+             userLoginTime = parcel.readString()!!
+             userLoginDate = parcel.readString()!!
+             userAction = parcel.readString()!!
+             userBitmap = parcel.readParcelable(Bitmap::class.java.classLoader)!!
          }
 
          override fun writeToParcel(parcel: Parcel, flags: Int) {

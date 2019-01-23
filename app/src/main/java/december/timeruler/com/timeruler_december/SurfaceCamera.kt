@@ -11,12 +11,15 @@ import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.support.v4.content.ContextCompat
 import android.util.DisplayMetrics
 import android.util.Log
@@ -31,9 +34,14 @@ import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.Frame
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
+import com.google.gson.GsonBuilder
+import december.timeruler.com.timeruler_december.DBHELPERS.OFFLINELOGDBHELPER
 import kotlinx.android.synthetic.main.activity_camera_source.*
+import okhttp3.*
 import org.jetbrains.anko.*
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.io.File
 
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -43,10 +51,14 @@ class SurfaceCamera : AppCompatActivity() {
 
     companion object {
         const val REQUEST_CODE = 11111
+        const val APINAME= "timeruler-api"
+
     }
 
     private var locationManager: LocationManager? = null
     private var locationListener: LocationListener? = null
+    lateinit var filepath:File
+    lateinit var filename:String
     lateinit var surfaceView: SurfaceView
     lateinit var cameraSource: CameraSource
     lateinit var mBtn_in: Button
@@ -57,6 +69,7 @@ class SurfaceCamera : AppCompatActivity() {
     lateinit var my_iv_preview: ImageView
     lateinit var my_ic_face: ImageView
     lateinit var globalUserBitmap: Bitmap
+    lateinit var myOFFLINELOGDBHELPER: OFFLINELOGDBHELPER
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,10 +79,27 @@ class SurfaceCamera : AppCompatActivity() {
         mBtn_in = findViewById<Button>(R.id.btn_in)
         mBtn_out = findViewById<Button>(R.id.btn_out)
         setupDigitalClock()
+        requestPermissionTakePhoto()
+        myOFFLINELOGDBHELPER = OFFLINELOGDBHELPER(this)
 
+        if(LoginActivity.login_mode.equals("offline")){
+
+            timeruler_mode.visibility = View.VISIBLE
+        }
+        else{
+            timeruler_mode.visibility = View.GONE
+
+        }
         askPermissions()
         onCreateDoables()
-        mBtn_in.setOnClickListener { transferData("IN") }
+
+
+
+        mBtn_in.setOnClickListener {
+
+                transferData("IN")
+
+        }
         mBtn_out.setOnClickListener { transferData("OUT") }
 
         iv_retake_pic.setOnClickListener {
@@ -184,14 +214,115 @@ class SurfaceCamera : AppCompatActivity() {
 
     }
 
-    fun getBytes(bitmap: Bitmap): ByteArray {
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream)
-        return stream.toByteArray()
+
+
+
+
+
+
+
+
+
+
+    fun getPath(uri: Uri): String {
+        var cursor = this.contentResolver.query(uri, null, null, null, null)
+        cursor.moveToFirst()
+        var document_id = cursor.getString(0)
+        document_id = document_id.substring(document_id.lastIndexOf(":") + 1)
+        cursor.close()
+
+        cursor = this.contentResolver.query(
+            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            null,
+            MediaStore.Images.Media._ID + " = ? ",
+            arrayOf<String>(document_id),
+            null
+        )
+        cursor.moveToFirst()
+        val path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
+        cursor.close()
+
+        return path
     }
+    private fun getFileName(context: Context, uri: Uri): String {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor = context.contentResolver.query(uri, null, null, null, null)
+            try {
+                if (cursor != null && cursor!!.moveToFirst()) {
+                    result = cursor!!.getString(cursor!!.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                if (cursor != null) {
+                    cursor!!.close()
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath()
+            val cut = result!!.lastIndexOf(File.separator)
+            if (cut != -1) {
+                result = result.substring(cut + 1)
+            }
+        }
+        return result
+    }
+
+
+
+    private fun getImageUri(context: Context, inImage: Bitmap): Uri {
+        val bytes = ByteArrayOutputStream()
+        inImage.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+        val path = MediaStore.Images.Media.insertImage(context.contentResolver, inImage, "Title", null)
+
+        return Uri.parse(path)
+    }
+
+
+
+
+
 
     private val mShutterCallback = CameraSource.ShutterCallback {
 
+
+    }
+
+    private fun requestPermissionTakePhoto() {
+        if (Build.VERSION.SDK_INT < 23) {
+            if (ActivityCompat.checkSelfPermission(
+                    this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+                return
+            }
+
+        } else {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
+                return
+            } else {
+
+                Log.e(TAG, "this part")
+            }
+
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+              //  locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+
+            }
+
+        }
 
     }
 
@@ -205,7 +336,7 @@ class SurfaceCamera : AppCompatActivity() {
             enableButton()
             Log.e(TAG, userBitmap.toString())
             globalUserBitmap = userBitmap
-
+            //globalByte = bytes
             var size = (globalUserBitmap.height * globalUserBitmap.width) * 4
             Log.e(TAG, "image size" + globalUserBitmap.byteCount + size)
 
@@ -214,28 +345,7 @@ class SurfaceCamera : AppCompatActivity() {
                 iv_photoPreview.setImageBitmap(userBitmap)
             }
 
-//        when (orientation) {
-//            90 -> bitmap = rotateImage(bitmap, 90f)
-//            180 -> bitmap = rotateImage(bitmap, 180f)
-//            270 -> bitmap = rotateImage(bitmap, 270f)
-//            0 -> {
-//            }
-//            // if orientation is zero we don't need to rotate this
-//
-            //            else -> {
-//            }
-//        }
-//        //write your code here to save bitmap
-//        val image = detect(bitmap)
-//        GlobalImageBitmap = image
-//        if (image != null) {
-//            save(image)
-//        } else {
-//
-//            save(bitmap)
-//            //                AppUtils.toastShort("No face detected");
-//            //                playNoFaceSound();
-//            //                finish();
+
         }
     }
 
@@ -420,9 +530,63 @@ class SurfaceCamera : AppCompatActivity() {
             newHeight = maxSize
             newWidth = width * newHeight / height
         }
-
         return Bitmap.createScaledBitmap(image, newWidth, newHeight, true)
     }
+
+
+    fun push_userlog2(myAttendance: Attendance){
+            Log.e(TAG,"giataykudasai")
+        doAsync {
+            val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/save_userlog"
+            val mClient = OkHttpClient()
+            val formBodyBuilder = MultipartBody.Builder()
+
+            formBodyBuilder.setType(MultipartBody.FORM)
+            formBodyBuilder.addFormDataPart("idno", myAttendance.userName)
+            formBodyBuilder.addFormDataPart("action",myAttendance.userAction )
+            formBodyBuilder.addFormDataPart("time", myAttendance.userLoginTime)
+            formBodyBuilder.addFormDataPart("date", myAttendance.userLoginDate)
+            formBodyBuilder.addFormDataPart("long", myAttendance.userLong)
+            formBodyBuilder.addFormDataPart("lat", myAttendance.userLat)
+            filepath = File(getPath(getImageUri(this@SurfaceCamera, globalUserBitmap)))
+            filename = getFileName(this@SurfaceCamera, getImageUri(this@SurfaceCamera, globalUserBitmap))
+
+            val requestBody = RequestBody.create(MediaType.parse("image/*"), filepath)
+            val fileToUpload = MultipartBody.Part.createFormData("file", filename, requestBody)
+            formBodyBuilder.addPart(fileToUpload)
+
+            val formBody = formBodyBuilder.build()
+
+            var builder = Request.Builder()
+            builder = builder.url(url)
+            builder = builder.post(formBody)
+            val request = builder.build()
+
+            mClient.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.e("error", e.toString())
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val mBody = response?.body()?.string()
+                    val mGSON = GsonBuilder().create()
+
+                    uiThread {
+                        filepath.delete()
+                        Log.i("file", filename)
+                        Log.i("mBody", mBody)
+                        Log.i("mGSON", mGSON.toString())
+                    }
+                    Log.e(TAG,"push is successful - "+response.isSuccessful.toString())
+
+                }
+            })
+
+            Log.e(TAG,"Ahakdesu")
+        }
+
+    }
+
 
     fun transferData(InOrOut: String) {
 
@@ -431,11 +595,13 @@ class SurfaceCamera : AppCompatActivity() {
         var myuserName = LoginActivity.username
         var myuserPass = LoginActivity.password
         var myuserPic = globalUserBitmap
-        var myuserLong = "Longtitude"
-        var myuserLat = "Latitude"
+        var myuserLong = LoginActivity.long
+        var myuserLat = LoginActivity.lat
         var myuserLoginTime = getCurrentTime()
         var myuserLoginDate = getCurrentDate()
         var myuserAction = InOrOut
+
+
         var myAttendance = Attendance(
             myuserName,
             myuserPass,
@@ -446,7 +612,9 @@ class SurfaceCamera : AppCompatActivity() {
             myuserAction,
             myuserPic
         )
-        var myAttendanceParce = AttendanceParce()
+
+
+            var myAttendanceParce = AttendanceParce()
         myAttendanceParce.userName = myuserName
         myAttendanceParce.userPass = myuserPass
         myAttendanceParce.userBitmap = myuserPic
@@ -459,12 +627,24 @@ class SurfaceCamera : AppCompatActivity() {
         Log.e(
             TAG,
             "$myuserName $myuserPass $myuserLong $myuserLat $myuserLoginTime $myuserLoginDate $myuserAction ${myuserPic.toString()}"
+
+
         )
+        if(LoginActivity.login_mode.equals("offline"))
+        {
+           var ifsuccess =  myOFFLINELOGDBHELPER.addOFFlineDATA(myAttendance)
 
+            Log.e(TAG,"Offline data is saved = "+ifsuccess.toString())
+        }
+        else{
 
+        }
 
+       // push_userlog(myAttendance)
+        push_userlog2(myAttendance)
         var gagongIntent: Intent = Intent()
-        gagongIntent.putExtra("somedata", "bogo ka")
+        gagongIntent.putExtra("surface_mode",LoginActivity.login_mode)
+        gagongIntent.putExtra("somedata", "gwapo ka")
         gagongIntent.putExtra("userAttendance",myAttendanceParce)
         setResult(REQUEST_CODE, gagongIntent)
         finish()
@@ -476,6 +656,8 @@ class SurfaceCamera : AppCompatActivity() {
     interface PassData {
         fun passstring(string: String)
     }
+
+
 
 }
 

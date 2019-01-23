@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/model_constraint"
+
+>
+   <TextView
+
+           android:layout_width="130dp" android:layout_height="wrap_content"
+           android:textAlignment="center"
+             android:paddingVertical="10dp"
+             android:text="123456"
+             app:layout_constraintTop_toTopOf="parent"
+             app:layout_constraintStart_toStartOf="parent" android:id="@+id/model_idno"/>
+
+    <android.support.constraint.ConstraintLayout android:layout_width="0dp"
+                                                 android:layout_height="0dp"
+                                                 app:layout_constraintStart_toEndOf="@+id/model_idno"
+                                                 android:layout_marginStart="8dp"
+                                                 app:layout_constraintEnd_toEndOf="parent"
+                                                 android:layout_marginEnd="8dp"
+                                                 app:layout_constraintTop_toTopOf="@+id/model_idno"
+                                                 app:layout_constraintBottom_toBottomOf="@+id/model_idno"
+
+>
+
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                  android:text="John Doe"
+                  android:maxLines="1"
+                  android:lines="1"
+                  android:id="@+id/model_name"
+                  android:layout_marginEnd="8dp" app:layout_constraintEnd_toStartOf="@+id/tv_viewLogs"
+                  android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="parent"
+                  android:layout_marginBottom="8dp" app:layout_constraintBottom_toBottomOf="parent"
+                  android:layout_marginStart="8dp" app:layout_constraintStart_toStartOf="parent"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:text="View Logs"
+                  android:textColor="@color/colorPrimary"
+                  android:id="@+id/tv_viewLogs"
+                  android:layout_marginEnd="8dp" app:layout_constraintEnd_toEndOf="parent"
+                  android:layout_marginBottom="8dp" app:layout_constraintBottom_toBottomOf="parent"
+                  android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="parent"/>
+
+
+
+    </android.support.constraint.ConstraintLayout>
+
+</android.support.constraint.ConstraintLayout>
