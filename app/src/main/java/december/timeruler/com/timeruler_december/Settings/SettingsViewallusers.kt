@@ -1,9 +1,6 @@
-package december.timeruler.com.timeruler_december
+package december.timeruler.com.timeruler_december.Settings
 
 import android.content.Context
-import android.media.Image
-import android.nfc.Tag
-import android.opengl.Visibility
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
@@ -18,16 +15,17 @@ import android.widget.*
 import com.google.gson.GsonBuilder
 import december.timeruler.com.timeruler_december.Adapters.UserListAdapter
 import kotlinx.android.synthetic.main.activity_settings_viewallusers.*
-import kotlinx.android.synthetic.main.model_user.*
 import okhttp3.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import java.io.IOException
 import java.lang.Exception
 import java.util.ArrayList
-import android.content.Context.INPUT_METHOD_SERVICE
-import android.support.v4.content.ContextCompat.getSystemService
 import android.view.inputmethod.InputMethodManager
+import december.timeruler.com.timeruler_december.Model.UserList
+import december.timeruler.com.timeruler_december.Model.UserListData
+import december.timeruler.com.timeruler_december.R
+import december.timeruler.com.timeruler_december.SurfaceCamera
 
 
 class SettingsViewallusers : AppCompatActivity() {
@@ -36,7 +34,7 @@ lateinit var myRecyclerView: RecyclerView
 
     val TAG= "SettingsViewallusers"
     var counter = 0
-    fun by_name_desc(user:UserListData):String = user.name
+    fun by_name_desc(user: UserListData):String = user.name
 
      var myAdapter:UserListAdapter ?= null
 companion object {
@@ -56,10 +54,18 @@ companion object {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings_viewallusers)
 
-        myBtnSearch = findViewById<ImageView>(R.id.btn_search)
-        myIvIconUsers = findViewById<ImageView>(R.id.iv_icon_users)
-        mytv_toolbar = findViewById<TextView>(R.id.tv_toolbar_Users)
-        myConstraintSearch = findViewById<ConstraintLayout>(R.id.constraint_search)
+        myBtnSearch = findViewById<ImageView>(
+            R.id.btn_search
+        )
+        myIvIconUsers = findViewById<ImageView>(
+            R.id.iv_icon_users
+        )
+        mytv_toolbar = findViewById<TextView>(
+            R.id.tv_toolbar_Users
+        )
+        myConstraintSearch = findViewById<ConstraintLayout>(
+            R.id.constraint_search
+        )
 
 myRecyclerView = findViewById<RecyclerView>(R.id.recyclerView)
          mySearch = findViewById<EditText>(R.id.searchAutocomplete)

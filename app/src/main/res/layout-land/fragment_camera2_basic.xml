@@ -30,7 +30,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
-    <TextView
+    a<TextView
         android:text="Dec 11,2018\n11:12:45 am"
         android:id="@+id/digitalClock"
         android:background="@color/black_alpha_80"

@@ -8,6 +8,7 @@ import android.view.animation.AnimationUtils
 import com.google.gson.GsonBuilder
 import december.timeruler.com.timeruler_december.DBHELPERS.LoginData
 import december.timeruler.com.timeruler_december.DBHELPERS.OFFLINELOGINDATADBHELPER
+import december.timeruler.com.timeruler_december.Model.UserList
 import kotlinx.android.synthetic.main.activity_splash_screen.*
 import okhttp3.*
 import org.jetbrains.anko.doAsync
@@ -16,7 +17,7 @@ import java.io.IOException
 import java.lang.Exception
 
 class splashScreen : AppCompatActivity() {
-val TAG = "SlapshScreen"
+    val TAG = "SlapshScreen"
 
     companion object {
 
@@ -27,12 +28,14 @@ val TAG = "SlapshScreen"
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
 
+
+
         var myDBHELPER =   OFFLINELOGINDATADBHELPER(this)
         Log.e(TAG,"LOGINDATA "+myDBHELPER.loginData)
         globalUserList  = myDBHELPER.loginData
 
         for(i in 0 until myDBHELPER.loginData.size){
-            Log.e(TAG,"username: "+myDBHELPER.loginData[i].userName + "password: "+myDBHELPER.loginData[i].userPass)
+           // Log.e(TAG,"username: "+myDBHELPER.loginData[i].userName + "password: "+myDBHELPER.loginData[i].userPass)
 
         }
         if (myDBHELPER.loginData.isEmpty()) {
@@ -41,6 +44,7 @@ val TAG = "SlapshScreen"
         }
 
         var myIntent = Intent(this,LoginActivity::class.java)
+
         doAsync {
             uiThread {
                 var fronBottom = AnimationUtils.loadAnimation(this@splashScreen, R.anim.uptodown)
@@ -55,7 +59,7 @@ val TAG = "SlapshScreen"
                     startActivity(myIntent)
 
                 }
-            Log.e(TAG," asd")
+       //         Log.e(TAG," asd")
 
             } catch (e: Exception) {
 
@@ -65,16 +69,16 @@ val TAG = "SlapshScreen"
         }
     }
 
-    fun putToLocal(userList:UserList){
+    fun putToLocal(userList: UserList){
 
-      var myDBHELPER =   OFFLINELOGINDATADBHELPER(this)
+        var myDBHELPER =   OFFLINELOGINDATADBHELPER(this)
         for (i in 0 until userList.data.size) {
 
             Log.e(TAG,"Data saved = "+myDBHELPER.addLoginDATA(userList.data[i].idno,userList.data[i].password))
         }
 
 
-        }
+    }
     fun putCached() {
 
 

@@ -8,7 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-
+    <style name="Sample" parent="android:Theme.DeviceDefault.InputMethod">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowIsFloating">true</item>
+    </style>
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_up</item>
+        <item name="android:windowExitAnimation">@anim/slide_down</item>
+    </style>
     <style name="toolbarTheme" parent="Theme.AppCompat.Light.NoActionBar">
 
 
@@ -18,6 +26,9 @@
     <style name="TextAppearance.App.TextInputLayout"
            parent="@android:style/TextAppearance"
     >
+
+
+
         <item name="android:textColor">@color/colorAccent</item>
     </style>
 </resources>

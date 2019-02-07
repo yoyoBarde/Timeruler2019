@@ -51,7 +51,7 @@
             android:hint="@string/hint_password"
             android:padding="14dp"
             android:background="@drawable/edit_text_login_border"
-            android:inputType="number"
+            android:inputType="numberPassword"
             android:textSize="16sp"
             android:textColorHint="@color/green"
             android:layout_marginTop="8dp"

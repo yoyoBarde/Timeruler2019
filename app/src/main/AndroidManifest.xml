@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="december.timeruler.com.timeruler_december">
+              package="december.timeruler.com.timeruler_december">
 
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
@@ -16,6 +16,7 @@
     <uses-permission android:name="android.hardware.camera2.full"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+
     <uses-permission android:name="android.hardware.camera.autofocus"/>
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
@@ -28,9 +29,12 @@
             android:allowBackup="true"
             android:icon="@mipmap/timeruler_logo_launcher"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
+
+        <meta-data
+                android:name="com.google.android.geo.API_KEY"
+                android:value="AIzaSyCq7iQPkshrFBsA3bJlpZXAzIAEgjPp1sg" />
         <meta-data
                 android:name="com.google.android.gms.version"
                 android:value="@integer/google_play_services_version"/>
@@ -45,29 +49,40 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".Fragments.Camera2BasicFragment">
+        </activity>
         <activity android:name=".SurfaceCamera">
         </activity>
         <activity android:name=".LoginActivity">
         </activity>
-        <activity android:name=".SettingsAdmin">
+        <activity android:name=".Settings.SettingsAdmin">
         </activity>
         <activity
                 android:name=".nav"
                 android:label="@string/title_activity_nav"
                 android:theme="@style/AppTheme">
         </activity>
-        <activity android:name=".SettingsViewallusers">
+
+        <activity android:name=".Settings.SettingsViewallusers">
         </activity>
         <activity android:name=".UsersLogs">
         </activity>
         <activity android:name=".MyLogs">
         </activity>
-        <activity android:name=".SettingsUsers">
+        <activity android:name=".Settings.SettingsUsers">
         </activity>
         <activity android:name=".Model.SettingsApi">
         </activity>
-        <activity android:name=".SettingsWorkLocation">
+        <activity android:name=".Settings.SettingsWorkLocation">
         </activity>
+        <activity android:name=".Samsung_camera">
+        </activity>
+        <activity android:name=".AddGeofence"
+ >
+
+        </activity>
+
+
     </application>
 
 </manifest>

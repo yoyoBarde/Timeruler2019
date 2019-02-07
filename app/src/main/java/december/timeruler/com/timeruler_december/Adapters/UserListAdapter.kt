@@ -3,12 +3,11 @@ package december.timeruler.com.timeruler_december.Adapters
 import android.content.Context
 import android.content.Intent
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import december.timeruler.com.timeruler_december.R
-import december.timeruler.com.timeruler_december.UserListData
+import december.timeruler.com.timeruler_december.Model.UserListData
 import december.timeruler.com.timeruler_december.UsersLogs
 import kotlinx.android.synthetic.main.model_user.view.*
 
@@ -35,11 +34,11 @@ companion object {
         holder.idno.text = user.idno
         holder.nameuser.text = user.name
         if(position%2==0){
-            holder.backgroundColor.setBackgroundColor(context.resources.getColor(R.color.light_gray))
+            holder.backgroundColor.setBackgroundColor(context.resources.getColor(R.color.white))
 
         }
         else
-            holder.backgroundColor.setBackgroundColor(context.resources.getColor(R.color.silver))
+            holder.backgroundColor.setBackgroundColor(context.resources.getColor(R.color.light_gray))
 
 
             holder.viewLog.setOnClickListener {

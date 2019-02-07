@@ -2,14 +2,11 @@ package december.timeruler.com.timeruler_december.DBHELPERS
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
-import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
-import december.timeruler.com.timeruler_december.APIMODEL
-import december.timeruler.com.timeruler_december.Attendance
+import december.timeruler.com.timeruler_december.Model.APIMODEL
 
 import java.util.ArrayList
 
@@ -26,7 +23,8 @@ class APIDBHELPER(context: Context) : SQLiteOpenHelper(context, TABLE_NAME, null
                 do {
 
 
-                    val myOFFLINEAPI = APIMODEL(data.getString(2), data.getString(3))
+                    val myOFFLINEAPI =
+                        APIMODEL(data.getString(2), data.getString(3))
 
                     OFFLINEAPI.add(myOFFLINEAPI)
                 } while (data.moveToNext())

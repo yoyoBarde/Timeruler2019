@@ -1,4 +1,4 @@
-package december.timeruler.com.timeruler_december
+package december.timeruler.com.timeruler_december.Model
 
 import android.graphics.Bitmap
 import android.os.Parcel
@@ -9,6 +9,34 @@ class DataModel {
 
 
 }
+
+
+
+
+
+data class GeofenceModelList(var data:ArrayList<GeofenceModelp>)
+data class GeofenceModelp(
+    var workplace_name:String,
+    var workplace_address:String,
+    var latitude: String,
+    var longitude: String,
+    var setby_admin:String,
+    var workplace_id: String
+
+)
+
+
+
+
+data class GeofenceModel(
+var workPlace:String,
+var workAddress:String,
+var latitude:String,
+var longitude:String,
+var admin:String,
+var workplace_id:String
+)
+
 
 
 
@@ -40,7 +68,7 @@ data class UserLogs(
     var bitmap:Bitmap,
     var image:String,
     var latitude:String,
-    var longtitude:String
+    var longitude:String
 )
 
 
@@ -48,6 +76,12 @@ data class UserLogs(
 
 
 
+data class CurrentTimeList(val message: CurrentTime)
+data class CurrentTime(
+    var date:String,
+    var time:String
+
+)
 
 
 data class APIMODEL(
@@ -70,7 +104,10 @@ data class Attendance(
     var userLoginDate: String,
     var userAction: String,
     var userBitmap: Bitmap
-)
+){
+     lateinit var userElapsedTime:String
+
+}
 
 
 
@@ -125,3 +162,9 @@ data class Attendance(
 
 
      }
+
+
+interface Dismisscallback{
+    fun dismissListener()
+
+}

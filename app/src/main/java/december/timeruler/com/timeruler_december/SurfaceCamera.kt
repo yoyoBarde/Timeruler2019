@@ -1,14 +1,11 @@
 package december.timeruler.com.timeruler_december
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
-import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
@@ -36,10 +33,12 @@ import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
 import com.google.gson.GsonBuilder
 import december.timeruler.com.timeruler_december.DBHELPERS.OFFLINELOGDBHELPER
+import december.timeruler.com.timeruler_december.Model.Attendance
+import december.timeruler.com.timeruler_december.Model.AttendanceParce
+import december.timeruler.com.timeruler_december.Model.CurrentTimeList
 import kotlinx.android.synthetic.main.activity_camera_source.*
 import okhttp3.*
 import org.jetbrains.anko.*
-import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
 
@@ -51,10 +50,10 @@ class SurfaceCamera : AppCompatActivity() {
 
     companion object {
         const val REQUEST_CODE = 11111
-        const val APINAME= "timeruler-api"
+        const val APINAME= "payrulerupdated-api"
 
     }
-
+    lateinit var globalServerTime: CurrentTimeList
     private var locationManager: LocationManager? = null
     private var locationListener: LocationListener? = null
     lateinit var filepath:File
@@ -74,6 +73,8 @@ class SurfaceCamera : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_source)
+
+        getServerTime()
         my_ic_face = findViewById(R.id.iv_facedetected_ic)
         my_iv_preview = findViewById<ImageView>(R.id.iv_photoPreview)
         mBtn_in = findViewById<Button>(R.id.btn_in)
@@ -544,8 +545,8 @@ class SurfaceCamera : AppCompatActivity() {
             formBodyBuilder.setType(MultipartBody.FORM)
             formBodyBuilder.addFormDataPart("idno", myAttendance.userName)
             formBodyBuilder.addFormDataPart("action",myAttendance.userAction )
-            formBodyBuilder.addFormDataPart("time", myAttendance.userLoginTime)
-            formBodyBuilder.addFormDataPart("date", myAttendance.userLoginDate)
+            formBodyBuilder.addFormDataPart("time", globalServerTime.message.time)
+            formBodyBuilder.addFormDataPart("date", globalServerTime.message.date)
             formBodyBuilder.addFormDataPart("long", myAttendance.userLong)
             formBodyBuilder.addFormDataPart("lat", myAttendance.userLat)
             filepath = File(getPath(getImageUri(this@SurfaceCamera, globalUserBitmap)))
@@ -612,6 +613,7 @@ class SurfaceCamera : AppCompatActivity() {
             myuserAction,
             myuserPic
         )
+        myAttendance.userElapsedTime = LoginActivity.elapsedTime
 
 
             var myAttendanceParce = AttendanceParce()
@@ -658,6 +660,43 @@ class SurfaceCamera : AppCompatActivity() {
     }
 
 
+    fun getServerTime() {
+
+
+        var booleanSuccess:Boolean=false
+        doAsync {
+
+            val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/current_time"
+            val mClient = OkHttpClient()
+            val mRequest = Request.Builder()
+                .url(url)
+                .build()
+
+            mClient.newCall(mRequest).enqueue(object : Callback {
+                override fun onFailure(call: Call?, e: IOException?) {
+                    Log.e("error", "${e.toString()}")
+                }
+
+                override fun onResponse(call: Call?, response: Response?) {
+                    try {
+                        val mBody = response?.body()?.string()
+                        val mGSON = GsonBuilder().create()
+                    val currentTimeListFeed = mGSON.fromJson(mBody, CurrentTimeList::class.java)
+                    //    val currentTIme = mGSON.fromJson(mBody,CurrentTime::class.java)
+                       Log.e(TAG, " verify Login - ${currentTimeListFeed.message}"+ response!!.isSuccessful.toString())
+                       // Log.e(TAG,currentTIme.toString()+response!!.isSuccessful)
+                            globalServerTime = currentTimeListFeed
+
+                    } catch (e: java.lang.Exception) {
+                        Log.e("error", "$e")
+
+                    }
+                }
+
+            })
+
+        }
+    }
 
 }
 

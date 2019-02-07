@@ -1,24 +1,21 @@
-package december.timeruler.com.timeruler_december
+package december.timeruler.com.timeruler_december.Settings
 
 import android.app.AlertDialog
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.service.autofill.FillEventHistory
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
-import com.google.gson.GsonBuilder
 import december.timeruler.com.timeruler_december.Adapters.UserListAdapter
+import december.timeruler.com.timeruler_december.AddGeofence
 import december.timeruler.com.timeruler_december.DBHELPERS.APIATAY
+import december.timeruler.com.timeruler_december.LoginActivity
+import december.timeruler.com.timeruler_december.R
+import december.timeruler.com.timeruler_december.UsersLogs
 import kotlinx.android.synthetic.main.activity_settings_admin.*
-import okhttp3.*
-import org.jetbrains.anko.doAsync
-import org.w3c.dom.Text
-import java.io.IOException
 import java.lang.Exception
 
 class SettingsAdmin : AppCompatActivity() {
@@ -30,13 +27,13 @@ lateinit var toolbar:Toolbar
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings_admin)
-
-    toolbar = findViewById<Toolbar>(R.id.settingsToolbar)
-        setSupportActionBar(toolbar)
-        toolbar.title = "Settings"
-        toolbar.setTitleTextColor(resources.getColor(R.color.white))
-        toolbar.setNavigationIcon(R.mipmap.ic_back)
-        toolbar.setLogo(R.mipmap.settings_timeruler_icon)
+//
+//    toolbar = findViewById<Toolbar>(R.id.settingsToolbar)
+//        setSupportActionBar(toolbar)
+//        toolbar.title = "Settings"
+//        toolbar.setTitleTextColor(resources.getColor(R.color.white))
+//        toolbar.setNavigationIcon(R.mipmap.ic_back)
+//        toolbar.setLogo(R.mipmap.settings_timeruler_icon)
 
         var myAPIDB = APIATAY(this)
         textView30.text = myAPIDB.apilist.get(0).companyIP
@@ -47,19 +44,20 @@ lateinit var toolbar:Toolbar
         tv_setApi.setOnClickListener { showIPentry() }
         tv_viewAllusers.setOnClickListener {
 
-            var myIntent = Intent(this,SettingsViewallusers::class.java)
+            var myIntent = Intent(this, SettingsViewallusers::class.java)
             startActivity(myIntent)
         }
 
         tv_setLocation.setOnClickListener {
-            var myIntent = Intent (this,SettingsWorkLocation::class.java)
+            var myIntent = Intent (this, AddGeofence::class.java)
             startActivity(myIntent)
 
         }
         adminLogs.setOnClickListener {
-            var myIntent = Intent(this,UsersLogs::class.java)
+            var myIntent = Intent(this, UsersLogs::class.java)
             UserListAdapter.userNameClicked = " John Doe"
-            UserListAdapter.userIDclicked = LoginActivity.usernamesettings
+            UserListAdapter.userIDclicked =
+                    LoginActivity.usernamesettings
             startActivity(myIntent)
 
 

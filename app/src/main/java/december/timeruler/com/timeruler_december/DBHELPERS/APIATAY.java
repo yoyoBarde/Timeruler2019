@@ -7,13 +7,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
-import december.timeruler.com.timeruler_december.APIMODEL;
-import december.timeruler.com.timeruler_december.Attendance;
+import december.timeruler.com.timeruler_december.Model.APIMODEL;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 

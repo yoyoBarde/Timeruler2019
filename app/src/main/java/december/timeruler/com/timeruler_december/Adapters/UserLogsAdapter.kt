@@ -2,7 +2,6 @@ package december.timeruler.com.timeruler_december.Adapters
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.Intent
 import android.graphics.BitmapFactory
 import android.support.v7.widget.RecyclerView
 import android.util.Log
@@ -12,7 +11,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import december.timeruler.com.timeruler_december.*
-import kotlinx.android.synthetic.main.model_user.view.*
+import december.timeruler.com.timeruler_december.Model.UserLogs
 import kotlinx.android.synthetic.main.model_userlogs.view.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.layoutInflater
@@ -45,11 +44,11 @@ class UserLogsAdapter(private val context: Context, private val userlogslist : L
             showLoginDialogSuccess(userLog)
         }
         if(position%2==0){
-            holder.constraintBackground.setBackgroundColor(context.resources.getColor(R.color.light_gray))
+            holder.constraintBackground.setBackgroundColor(context.resources.getColor(R.color.white))
 
         }
         else
-            holder.constraintBackground.setBackgroundColor(context.resources.getColor(R.color.silver))
+            holder.constraintBackground.setBackgroundColor(context.resources.getColor(R.color.light_gray))
 
     }
 
@@ -66,7 +65,7 @@ class UserLogsAdapter(private val context: Context, private val userlogslist : L
 
 
 
-    fun showLoginDialogSuccess(myLogs:UserLogs) {
+    fun showLoginDialogSuccess(myLogs: UserLogs) {
 
 
         val dialogBuilder = AlertDialog.Builder(context)
@@ -98,7 +97,7 @@ uiThread {
         mLogTime.text = myLogs.time
         mLogDate.text = myLogs.date
         mLogLat.text = myLogs.latitude
-        mLogLong.text = myLogs.longtitude
+        mLogLong.text = myLogs.longitude
 //        mLogLat.text = myAttendanceParce.userLat
 //        mLogLong.text = myAttendanceParce.userLong
 

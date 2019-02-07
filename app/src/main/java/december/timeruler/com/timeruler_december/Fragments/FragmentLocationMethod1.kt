@@ -1,17 +1,14 @@
-package december.timeruler.com.timeruler_december
+package december.timeruler.com.timeruler_december.Fragments
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat.getSystemService
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,11 +16,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
-import kotlinx.android.synthetic.*
-import kotlinx.android.synthetic.main.activity_login.*
+import december.timeruler.com.timeruler_december.R
 import kotlinx.android.synthetic.main.fragment_fragment_location_method1.*
-import org.w3c.dom.Text
-import java.lang.Exception
 
 
 class FragmentLocationMethod1 : Fragment() {
@@ -36,6 +30,8 @@ companion object {
     lateinit var tv_lat:TextView
     lateinit var tv_long:TextView
     lateinit var myProgBar:ProgressBar
+
+
 
 
 

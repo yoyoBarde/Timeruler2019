@@ -1,4 +1,4 @@
-package december.timeruler.com.timeruler_december;
+package december.timeruler.com.timeruler_december.Model;
 
 import android.Manifest;
 import android.app.Activity;
@@ -53,13 +53,9 @@ public class JavaFunctions {
                 "bitmap width:" + bitmap.getWidth() + " height:" + bitmap.getHeight() + "\n" +
                 "face width:" + " height:");
         Log.e(TAG, "face size:" + faces.size());
-        //  globalFaceSize=faces.size();
         if (faces.size() > 0) {
             Face face = faces.valueAt(0);
-//            int x = Math.max((int) (face.getPosition().x - FaceGraphic.ID_X_OFFSET), 0);
-//            int y = Math.max((int) (face.getPosition().y - FaceGraphic.ID_Y_OFFSET), 0);
-//            int width = Math.min((int) (face.getWidth() - FaceGraphic.ID_X_OFFSET), bitmap.getWidth() - x);
-//            int height = Math.min((int) (face.getHeight() + FaceGraphic.ID_Y_OFFSET), bitmap.getHeight() - y);
+
 
             int x = (int) face.getPosition().x;
             int y = (int) face.getPosition().y;

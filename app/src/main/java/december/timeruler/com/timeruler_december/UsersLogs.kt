@@ -10,6 +10,8 @@ import android.widget.TextView
 import com.google.gson.GsonBuilder
 import december.timeruler.com.timeruler_december.Adapters.UserListAdapter
 import december.timeruler.com.timeruler_december.Adapters.UserLogsAdapter
+import december.timeruler.com.timeruler_december.Model.UserLogs
+import december.timeruler.com.timeruler_december.Model.UserLogsList
 import kotlinx.android.synthetic.main.activity_users_logs.*
 import okhttp3.*
 import org.jetbrains.anko.doAsync
@@ -19,7 +21,7 @@ import java.io.IOException
 class UsersLogs : AppCompatActivity() {
     val TAG = "UsersLogs"
     lateinit var mysRecyclerView: RecyclerView
-    fun by_date_recent(userLogs:UserLogs):String = userLogs.date
+    fun by_date_recent(userLogs: UserLogs):String = userLogs.date
     lateinit var myUsername:TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {

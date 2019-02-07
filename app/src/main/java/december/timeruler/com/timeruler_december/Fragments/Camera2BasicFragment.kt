@@ -1,4 +1,4 @@
-package december.timeruler.com.timeruler_december.Camera
+package december.timeruler.com.timeruler_december.Fragments
 
 /*
  * Copyright 2017 The Android Open Source Project
@@ -51,10 +51,16 @@ import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.Frame
 import com.google.android.gms.vision.face.Face
 import com.google.android.gms.vision.face.FaceDetector
-import december.timeruler.com.timeruler_december.JavaFunctions
+import com.google.gson.GsonBuilder
+import december.timeruler.com.timeruler_december.Camera.*
+import december.timeruler.com.timeruler_december.Model.JavaFunctions
+import december.timeruler.com.timeruler_december.LoginActivity
+import december.timeruler.com.timeruler_december.Model.AttendanceParce
+import december.timeruler.com.timeruler_december.Model.CurrentTimeList
 import december.timeruler.com.timeruler_december.R
 import december.timeruler.com.timeruler_december.SurfaceCamera
 import kotlinx.android.synthetic.main.fragment_camera2_basic.*
+import okhttp3.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import java.io.*
@@ -73,6 +79,8 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
     lateinit var globalBitmap: Bitmap
     lateinit var surfaceView: SurfaceView
     lateinit var cameraSource: CameraSource
+    lateinit var globalServerTime: CurrentTimeList
+
     /**
      * [TextureView.SurfaceTextureListener] handles several lifecycle events on a
      * [TextureView].
@@ -125,18 +133,23 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
     private val stateCallback = object : CameraDevice.StateCallback() {
 
         override fun onOpened(cameraDevice: CameraDevice) {
+            Log.e(TAG,"onOpened")
             cameraOpenCloseLock.release()
             this@Camera2BasicFragment.cameraDevice = cameraDevice
             createCameraPreviewSession()
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
+            Log.e(TAG,"onDisconnected")
+
             cameraOpenCloseLock.release()
             cameraDevice.close()
             this@Camera2BasicFragment.cameraDevice = null
         }
 
         override fun onError(cameraDevice: CameraDevice, error: Int) {
+            Log.e(TAG,"onError")
+
             onDisconnected(cameraDevice)
             this@Camera2BasicFragment.activity?.finish()
         }
@@ -289,7 +302,11 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<View>(R.id.btn_in).setOnClickListener(this)
         view.findViewById<View>(R.id.info).setOnClickListener(this)
+        view.findViewById<View>(R.id.btn_out).setOnClickListener(this)
+
         textureView = view.findViewById(R.id.texture)
+      //  onPause()
+        getServerTime()
 
         myDigitalCLock = view.findViewById(R.id.digitalClock)
 
@@ -297,8 +314,6 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
         var myJavaFunctions: JavaFunctions =
             JavaFunctions()
         myJavaFunctions.faceScanner(activity!!)
-        var myIntent:Intent = Intent(activity!!, SurfaceCamera::class.java)
-       //startActivity(myIntent)
         doAsync {
             var myDate = getCurrentDate()
 
@@ -314,7 +329,7 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
                 uiThread {
 
 
-                    digitalClock.text = myString
+//                    digitalClock.text = myString
 
                 }
 
@@ -323,16 +338,9 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
 
         }
 
-        surfaceCamera()
-        btn_out.setOnClickListener {
-            Log.e(TAG, "tagtag")
-            myJavaFunctions.detectFace(globalBitmap, activity!!)
+//scam()
 
-            startActivity(myIntent)
-
-
-        }
-
+        //startActivity(Intent(activity!!,nav::class.java))
 
         //  runDigitalClock()
     }
@@ -379,9 +387,33 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
             PIC_FILE_NAME
         )
     }
+fun scam(){
+doAsync {
 
+
+    onPause()
+
+    Log.e(TAG, "onResume")
+    startBackgroundThread()
+
+    // When the screen is turned off and turned back on, the SurfaceTexture is already
+    // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
+    // a camera and start preview from here (otherwise, we wait until the surface is ready in
+    // the SurfaceTextureListener).
+    if (textureView.isAvailable) {
+        openCamera(textureView.width, textureView.height)
+    } else {
+        textureView.surfaceTextureListener = surfaceTextureListener
+    }
+
+
+
+
+}
+}
     override fun onResume() {
         super.onResume()
+    Log.e(TAG,"onResume")
         startBackgroundThread()
 
         // When the screen is turned off and turned back on, the SurfaceTexture is already
@@ -396,6 +428,7 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
     }
 
     override fun onPause() {
+        Log.e(TAG,"onPause")
         closeCamera()
         stopBackgroundThread()
         super.onPause()
@@ -660,10 +693,35 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
 
     }
 
-    /**
-     * Creates a new [CameraCaptureSession] for camera preview.
-     */
-    private fun takePicture() {
+    fun push_log(action:String , myBitmap:Bitmap){
+        var myAttendanceParce = AttendanceParce()
+        myAttendanceParce.userName = LoginActivity.username
+        myAttendanceParce.userPass = LoginActivity.password
+        myAttendanceParce.userBitmap = myBitmap
+        myAttendanceParce.userLong = LoginActivity.long
+        myAttendanceParce.userLat = LoginActivity.lat
+        myAttendanceParce.userLoginTime = globalServerTime.message.time
+        myAttendanceParce.userLoginDate = globalServerTime.message.date
+        myAttendanceParce.userAction = action
+
+        var gagongIntent: Intent = Intent()
+        gagongIntent.putExtra("surface_mode",
+            LoginActivity.login_mode
+        )
+        gagongIntent.putExtra("somedata", "gwapo ka")
+        gagongIntent.putExtra("userAttendance",myAttendanceParce)
+        activity!!.setResult(SurfaceCamera.REQUEST_CODE, gagongIntent)
+        activity!!.finish()
+
+
+        Log.e(TAG,myAttendanceParce.userAction+"\n${myAttendanceParce.userName}\n${myAttendanceParce.userLoginDate
+        }\n${myAttendanceParce.userLoginTime}\n${myAttendanceParce.userBitmap}\n${myAttendanceParce.userLong}\n${myAttendanceParce.userLat}"+" my attendanceParce")
+
+    }
+
+
+
+    private fun takePicture(action:String) {
         Log.e(TAG, "takePicre")
         if (cameraDevice == null)
             return
@@ -710,11 +768,21 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
                         doAsync {
                             var myBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                             Log.e(TAG, myBitmap.toString())
-                            globalBitmap = myBitmap
-                              //  myJavaFunc.detectFace(myBitmap,activity!!)
-                            uiThread {
-                                iv_photoTaken.setImageBitmap(myBitmap!!)
 
+                            if (resources.configuration.orientation === Configuration.ORIENTATION_PORTRAIT) {
+                                globalBitmap =
+                                        RotateBitmap(
+                                            myBitmap,
+                                            180f
+                                        )
+
+                            }
+
+                            var userBitmap = getResizedBitmap(detectFace(globalBitmap)!!, 100)
+                            push_log(action,userBitmap)
+
+                            uiThread {
+                                iv_photoTaken.setImageBitmap(userBitmap)
                             }
 
 
@@ -875,22 +943,8 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
     /**
      * Lock the focus as the first step for a still image capture.
      */
-    private fun lockFocus() {
-        takePicture()
-//        try {
-//            // This is how to tell the camera to lock focus.
-//            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-//                CameraMetadata.CONTROL_AF_TRIGGER_START)
-//            // Tell #captureCallback to wait for the lock.
-//            state = STATE_WAITING_LOCK
-//            captureSession?.capture(previewRequestBuilder.build(), captureCallback,
-//                backgroundHandler)
-//            Log.e(TAG, "YOYO")
-//
-//        } catch (e: CameraAccessException) {
-//            Log.e(TAG, e.toString())
-//        }
-//        Log.e(TAG, "yoyogwapo")
+    private fun lockFocus(action:String) {
+        takePicture(action)
 
 
     }
@@ -924,6 +978,7 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
      * [.captureCallback] from both [.lockFocus].
      */
     private fun captureStillPicture() {
+
         try {
             if (activity == null || cameraDevice == null) return
             val rotation = activity!!.windowManager.defaultDisplay.rotation
@@ -957,6 +1012,8 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
                     request: CaptureRequest,
                     result: TotalCaptureResult
                 ) {
+
+
                     activity!!.showToast("Saved: $file")
                     Log.d(TAG, file.toString())
                     unlockFocus()
@@ -1003,72 +1060,86 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
         }
 
     }
-    private fun surfaceCamera(){
-        Log.e(TAG,"surfaceCamera")
+    private fun detectFace(bitmap: Bitmap): Bitmap? {
 
-
-        detector = FaceDetector.Builder(activity!!)
+        val detector = FaceDetector.Builder(activity!!.applicationContext)
             .setProminentFaceOnly(true)
-            .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+            .setTrackingEnabled(false)
             .build()
+        val frame = Frame.Builder().setBitmap(bitmap).build()
+        val faces = detector.detect(frame)
+        detector.release()
 
-        cameraSource = CameraSource.Builder(activity!!, detector)
-            .setRequestedPreviewSize(640, 480)
-            .setFacing(CameraSource.CAMERA_FACING_FRONT)
-            .setRequestedFps(20.0f)
-            .build()
-        detector.setProcessor (object : Detector.Processor<Face> {
-            override fun release() {
+        Log.e(
+            TAG, "detect \n" +
+                    "bitmap width:" + bitmap.width + " height:" + bitmap.height + "\n" +
+                    "face width:" + " height:"
+        )
+        Log.e(TAG, "face size:" + faces.size())
+        if (faces.size() > 0) {
+            val face = faces.valueAt(0)
+            //            int x = Math.max((int) (face.getPosition().x - FaceGraphic.ID_X_OFFSET), 0);
+            //            int y = Math.max((int) (face.getPosition().y - FaceGraphic.ID_Y_OFFSET), 0);
+            //            int width = Math.min((int) (face.getWidth() - FaceGraphic.ID_X_OFFSET), bitmap.getWidth() - x);
+            //            int height = Math.min((int) (face.getHeight() + FaceGraphic.ID_Y_OFFSET), bitmap.getHeight() - y);
+
+            var x = face.position.x.toInt()
+            var y = face.position.y.toInt()
+            var width = Math.min(face.width.toInt(), bitmap.width - x)
+            var height = Math.min(face.height.toInt(), bitmap.height - y)
+            if (x < 0) {
+                width += x // += x is negative
+                x = 0
+            }
+            if (y < 0) {
+                height += y // += y is negative
+                y = 0
+
+            }
+//            Log.e(TAG, "Y = " + y + " height " + height + " = " + (y + height) + " bH " + bitmap.height)
+//            Log.e(TAG, "x = " + x + " width " + width + " = " + (x + width) + " bW " + bitmap.width)
+
+            if (y + height > bitmap.height) {// to avoid java.lang.IllegalArgumentException: y + height must be <= bitmap.height()
+                val difference =
+                    Math.abs(y + height - bitmap.height) // Get the difference of bitmap height and y+height
+                val divide = difference / 2                              // divide it to 2
+                y += divide                                            // add it to y and subtract it to height
+                height -= divide                                       // so we can get the center of the fucking face
 
             }
 
-            override fun receiveDetections(detections: Detector.Detections<Face>) {
-
-                val faces = detections.detectedItems
-
-                if (faces.size() != 0) {
-
-                    Log.e(TAG, "gwapo ka")
-
-                } else {
-                    Log.e(TAG, "way nawong ka ")
-
-                }
-
-            }
-        })
-
-        cameraPreview123.holder.addCallback(object : SurfaceHolder.Callback {
-            override fun surfaceCreated(holder: SurfaceHolder) {
-                if (ActivityCompat.checkSelfPermission(
-                        activity!!,
-                        Manifest.permission.CAMERA
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    return
-                }
-                try {
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-
+            if (x + width > bitmap.width) {// to avoid java.lang.IllegalArgumentException: x + width must be <= bitmap.getWidth()
+                val difference =
+                    Math.abs(y + height - bitmap.height) // Get the difference of bitmap width and x + width
+                val divide = difference / 2                              // divide it to 2
+                x += divide                                            // add it to y and subtract it to height
+                width -= divide                                       // so we can get the center of the fucking face
             }
 
-            override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
 
-            }
-
-            override fun surfaceDestroyed(holder: SurfaceHolder) {
-                cameraSource.stop()
-            }
-        })
-
-
-
+            return Bitmap.createBitmap(bitmap, x, y, width, height)
+        }
+        return null
     }
+
+    fun getResizedBitmap(image: Bitmap, maxSize: Int): Bitmap {
+        val width = image.width
+        val height = image.height
+        val newWidth: Int
+        val newHeight: Int
+        if (width > height) {
+            newWidth = maxSize
+            newHeight = height * newWidth / width
+        } else {
+            newHeight = maxSize
+            newWidth = width * newHeight / height
+        }
+        return Bitmap.createScaledBitmap(image, newWidth, newHeight, true)
+    }
+
     override fun onClick(view: View) {
         when (view.id) {
-            R.id.btn_in -> lockFocus()
+            R.id.btn_in -> {lockFocus("IN")}
             R.id.info -> {
                 if (activity != null) {
                     AlertDialog.Builder(activity)
@@ -1078,13 +1149,49 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
                 }
             }
             R.id.btn_out -> {
-                Log.e(TAG, "ButtonOut")
-
+lockFocus("OUT")
 //                var result = detect(globalBitmap,activity!!)
 //                Log.e(TAG, result.toString()+" 1 if got face")
 
 
             }
+        }
+    }
+    fun getServerTime() {
+
+
+        var booleanSuccess:Boolean=false
+        doAsync {
+
+            val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/current_time"
+            val mClient = OkHttpClient()
+            val mRequest = Request.Builder()
+                .url(url)
+                .build()
+
+            mClient.newCall(mRequest).enqueue(object : Callback {
+                override fun onFailure(call: Call?, e: IOException?) {
+                    Log.e("error", "${e.toString()}")
+                }
+
+                override fun onResponse(call: Call?, response: Response?) {
+                    try {
+                        val mBody = response?.body()?.string()
+                        val mGSON = GsonBuilder().create()
+                        val currentTimeListFeed = mGSON.fromJson(mBody, CurrentTimeList::class.java)
+                        //    val currentTIme = mGSON.fromJson(mBody,CurrentTime::class.java)
+                        Log.e(Companion.TAG, " verify Login - ${currentTimeListFeed.message}"+ response!!.isSuccessful.toString())
+                        // Log.e(TAG,currentTIme.toString()+response!!.isSuccessful)
+                        globalServerTime = currentTimeListFeed
+
+                    } catch (e: java.lang.Exception) {
+                        Log.e("error", "$e")
+
+                    }
+                }
+
+            })
+
         }
     }
 
@@ -1243,64 +1350,10 @@ class Camera2BasicFragment : Fragment(), View.OnClickListener,
 
         }
 
-        private fun detect(bitmap: Bitmap, context: Context): Int {
-            Log.e(TAG, "detect")
-            var detector = FaceDetector.Builder(context)
-                .setProminentFaceOnly(true)
-                .setTrackingEnabled(false)
-                .build()
-            val frame = Frame.Builder().setBitmap(bitmap).build()
-            val faces = detector.detect(frame)
-            detector.release()
-
-            Log.e(
-                TAG, "detect \n" +
-                        "bitmap width:" + bitmap.width + " height:" + bitmap.height + "\n" +
-                        "face width:" + " height:"
-            )
-            Log.e(TAG, "face size:" + faces.size())
-
-
-
-            if (faces.size() > 0) {
-                val face = faces.valueAt(0)
-                var x = face.position.x.toInt()
-                var y = face.position.y.toInt()
-                var width = Math.min(face.width.toInt(), bitmap.width - x)
-                var height = Math.min(face.height.toInt(), bitmap.height - y)
-                if (x < 0) {
-                    width += x // += x is negative
-                    x = 0
-                }
-                if (y < 0) {
-                    height += y // += y is negative
-                    y = 0
-
-                }
-                Log.e(TAG, "Y = " + y + " height " + height + " = " + (y + height) + " bH " + bitmap.height)
-                Log.e(TAG, "x = " + x + " width " + width + " = " + (x + width) + " bW " + bitmap.width)
-
-                if (y + height > bitmap.height) {// to avoid java.lang.IllegalArgumentException: y + height must be <= bitmap.height()
-                    val difference =
-                        Math.abs(y + height - bitmap.height) // Get the difference of bitmap height and y+height
-                    val divide = difference / 2                              // divide it to 2
-                    y += divide                                            // add it to y and subtract it to height
-                    height -= divide                                       // so we can get the center of the fucking face
-
-                }
-
-                if (x + width > bitmap.width) {// to avoid java.lang.IllegalArgumentException: x + width must be <= bitmap.getWidth()
-                    val difference =
-                        Math.abs(y + height - bitmap.height) // Get the difference of bitmap width and x + width
-                    val divide = difference / 2                              // divide it to 2
-                    x += divide                                            // add it to y and subtract it to height
-                    width -= divide                                       // so we can get the center of the fucking face
-                }
-
-
-                return faces.size()
-            }
-            return faces.size()
+        fun RotateBitmap(source: Bitmap, angle: Float): Bitmap {
+            val matrix = Matrix()
+            matrix.postRotate(angle)
+            return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
         }
 
 

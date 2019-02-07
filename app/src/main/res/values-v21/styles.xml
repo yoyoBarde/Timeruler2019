@@ -1,2 +1,7 @@
 <resources>
+<style name="Sample" parent="android:Theme.DeviceDefault.InputMethod">
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowFullscreen">false</item>
+    <item name="android:windowIsFloating">true</item>
+</style>
 </resources>

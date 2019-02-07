@@ -21,7 +21,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -46,25 +45,36 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.net.wifi.WifiManager
+import android.os.SystemClock
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
+import android.support.v7.widget.DefaultItemAnimator
+import android.support.v7.widget.LinearLayoutManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.KeyEvent
 import android.widget.*
+import com.google.android.gms.maps.model.LatLng
 import com.google.gson.GsonBuilder
+import december.timeruler.com.timeruler_december.Adapters.GeofenceAdapter
 import december.timeruler.com.timeruler_december.DBHELPERS.APIATAY
-import december.timeruler.com.timeruler_december.DBHELPERS.APIDBHELPER
 import december.timeruler.com.timeruler_december.DBHELPERS.OFFLINELOGDBHELPER
-import kotlinx.android.synthetic.main.dialog_api.*
+import december.timeruler.com.timeruler_december.Model.*
+import december.timeruler.com.timeruler_december.Settings.SettingsAdmin
+import december.timeruler.com.timeruler_december.Settings.SettingsUsers
+import december.timeruler.com.timeruler_december.Model.JavaToKotlin
+import kotlinx.android.synthetic.main.activity_add_geofence.*
 
 import okhttp3.*
+import org.jetbrains.anko.toast
 import org.jetbrains.anko.uiThread
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.text.DecimalFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 
 
@@ -82,10 +92,15 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
         lateinit var long: String
         lateinit var login_mode: String
         lateinit var userLevel:String
+        lateinit var elapsedTime:String
 
     }
+    var globalPushOnce = 0
+    lateinit var ipDialog:AlertDialog
+   lateinit var globalServertimemilis:String
     lateinit var filepath:File
     lateinit var filename:String
+    lateinit var globalGeofenceList:GeofenceModelList
     var notif_id = 1023
     var haveWifi=false
     lateinit var mGPSDialog: AlertDialog
@@ -95,21 +110,28 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
     private lateinit var myLOGINDATADBHELPER: LOGINDATADBHELPER
 
     private var client: FusedLocationProviderClient? = null
+    lateinit var globalServerTime:CurrentTimeList
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+        /* Push Offline Data*/
+        getServerTime()
+
+        getGeofences()
+
+       // startActivity(Intent(this,SettingsAdmin::class.java))
         var myApiAtay = APIATAY(this)
         if(myApiAtay.apilist.size==0) {
             showIPentry()
         }
       //  getUserLevel("000002")
 //            Log.e(TAG, userLevel)
-
         setupDigitalClock()
 
-        pushOfflineData()
+
         myLOGINDATADBHELPER = LOGINDATADBHELPER(this)
 
         var intentFilter = IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
@@ -124,8 +146,11 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
         getLocation()
 
 
+//
+//        var javaLocation = JavaToKotlin()
         var javaLocation = JavaToKotlin()
         javaLocation.getLocationWhenOffline(this)
+
         //myJavaFunctions.getLocationWhenOffline(this)
         btn_login.setOnClickListener {
             username = et_username.text.toString()
@@ -141,6 +166,7 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
             var success = false
                 Log.e(TAG,"offline = "+splashScreen.globalUserList)
             for (i in 0 until splashScreen.globalUserList.size) {
+
 
                     Log.e(TAG,splashScreen.globalUserList[i].userName)
                 if(splashScreen.globalUserList[i].userName.equals(username) && splashScreen.globalUserList[i].userPass.equals(password)){
@@ -263,7 +289,18 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
                                 val personalInfo = mGSON.fromJson(mBody, PersonalInformation::class.java)
                                 runOnUiThread {
                                     userLevel = personalInfo.data.userlevel
-                                    Log.e(TAG, "userLevel - " + userLevel)
+                                    Log.e(TAG, username+" userLevel - " + userLevel)
+
+                                    if(userLevel.equals("ADMIN")) {
+                                        val myIntent = Intent(this@LoginActivity, SettingsAdmin::class.java)
+                                        startActivity(myIntent)
+                                    }
+                                    else{
+                                        val myIntent = Intent(this@LoginActivity,
+                                            SettingsUsers::class.java)
+                                        startActivity(myIntent)
+                                    }
+
                                 }
                             } catch (e: Exception) {
                                 Log.e("error", "$e")
@@ -277,26 +314,111 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
         }
     }
-    fun push_userlog2(myAttendance: Attendance){
-        Log.e(TAG,myAttendance.toString())
-        Log.e(TAG,"giataykudasai")
+    fun verifyApi(foldername:String,ipaddress:String){
+        var myUserlevel = "default"
+        doAsync {
+
+            val url = "http://$ipaddress/${foldername}/user_controller/userlist"
+            val mClient = OkHttpClient()
+            val mRequest = Request.Builder()
+                .url(url)
+                .build()
+
+            mClient.newCall(mRequest).enqueue(object : Callback {
+                override fun onFailure(call: Call?, e: IOException?) {
+                    Log.e("error", "${e.toString()}")
+                }
+
+                override fun onResponse(call: Call?, response: Response?) {
+                    try {
+                        val mBody = response?.body()?.string()
+                        val mGSON = GsonBuilder().create()
+                       // val personalInfo         = mGSON.fromJson(mBody, PersonalInformation::class.java)
+                            Log.e(TAG,"APICHECK - ${response?.isSuccessful}")
+                        if(response!!.isSuccessful) {
+                            var myAPIATAY = APIATAY(this@LoginActivity)
+
+                            myAPIATAY.addOFFlineDATA(foldername,ipaddress)
+                            Log.e(
+                                TAG,
+                                myAPIATAY.updateTable(ipaddress, foldername).toString()
+                            )
+                            Log.e(TAG, myAPIATAY.apilist.toString())
+                            ipDialog.dismiss()
+
+                        }
+                        else toast("Invalid API !")
+                    } catch (e: Exception) {
+                        Log.e("error", "$e")
+                        Toast.makeText(this@LoginActivity,"Enter valid credentials",Toast.LENGTH_SHORT).show()
+
+                    }
+
+                }
+
+            })
+
+        }
+    }
+
+    fun push_userlog2(myAttendance: Attendance) {
+        var myLogTime:String = " "
+        var myLogDate:String = " "
+        Log.e(TAG, myAttendance.toString())
+        Log.e(TAG, "giataykudasai")
         doAsync {
             val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/save_userlog"
             val mClient = OkHttpClient()
             val formBodyBuilder = MultipartBody.Builder()
-            Log.e(TAG,"sulod"+myAttendance.toString())
+            Log.e(TAG, "sulod" + myAttendance.toString())
             var myOfflineDBHELPER = OFFLINELOGDBHELPER(this@LoginActivity)
+
+
+
+
+//            if(myAttendance.userElapsedTime.toLong()>SystemClock.elapsedRealtime())
+//            {
+//                var difference = myAttendance.userElapsedTime.toInt()  - SystemClock.elapsedRealtime().toInt()
+//
+//                if(difference>1800000){
+//                    var  format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+//                    var  format1 = SimpleDateFormat("dd/MM/yyyy")
+//                    var  format2 = SimpleDateFormat("HH:mm:ss")
+//
+//
+//                    var mydate =  Date(difference.toLong())
+//
+//                    Log.e(TAG,"boot time - "+format.format(mydate)+"boot time 1 -"+format1.format(mydate)+"boot time 2 - "+format2.format(mydate))
+//
+//                    myLogTime = format2.format(mydate)
+//                    myLogDate =format1.format(mydate)
+//
+//
+//
+//                }
+//                else{
+//
+//                    myLogTime = myAttendance.userLoginTime
+//                    myLogDate = myAttendance.userLoginDate
+//
+//
+//
+//                }
+//
+//            }
+//            else{
+
 
 
             formBodyBuilder.setType(MultipartBody.FORM)
             formBodyBuilder.addFormDataPart("idno", myAttendance.userName)
-            formBodyBuilder.addFormDataPart("action",myAttendance.userAction )
+            formBodyBuilder.addFormDataPart("action", myAttendance.userAction)
             formBodyBuilder.addFormDataPart("time", myAttendance.userLoginTime)
             formBodyBuilder.addFormDataPart("date", myAttendance.userLoginDate)
             formBodyBuilder.addFormDataPart("long", myAttendance.userLong)
             formBodyBuilder.addFormDataPart("lat", myAttendance.userLat)
 
-            Log.e(TAG,formBodyBuilder.toString())
+            Log.e(TAG, formBodyBuilder.toString())
             filepath = File(getPath(getImageUri(this@LoginActivity, myAttendance.userBitmap)))
             filename = getFileName(this@LoginActivity, getImageUri(this@LoginActivity, myAttendance.userBitmap))
 
@@ -327,16 +449,24 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
                         Log.i("mGSON", mGSON.toString())
                     }
                     runOnUiThread {
-                        Log.e(TAG,"Responses - " +
-                                "${response.isSuccessful} " +
-                                "${response.body()} ")
-                        if(response.isSuccessful){
+                        Log.e(
+                            TAG, "Responses - " +
+                                    "${response.isSuccessful} " +
+                                    "${response.body()} "
+                        )
+                        if (response.isSuccessful) {
                             displayNotification(myAttendance)
 
 
                         }
-                        if(response.isSuccessful){
-                            Log.e(TAG,"deleted or not "+myOfflineDBHELPER.deleteFrom(myAttendance.userName,myAttendance.userLoginTime))
+                        if (response.isSuccessful) {
+                            Log.e(
+                                TAG,
+                                "deleted or not " + myOfflineDBHELPER.deleteFrom(
+                                    myAttendance.userName,
+                                    myAttendance.userLoginTime
+                                )
+                            )
 
 
                         }
@@ -344,65 +474,18 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
                     }
 
 
-                    Log.e(TAG,"push is successful - "+response.isSuccessful.toString())
+                    Log.e(TAG, "push is successful - " + response.isSuccessful.toString())
 
                 }
             })
 
-            Log.e(TAG,"Ahakdesu")
+            Log.e(TAG, "Ahakdesu")
         }
 
     }
-    fun push_userlog(myAttendance:Attendance){
-
-        doAsync {
-            val urlInterested = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/save_userlog"
-            val mClientInterested = OkHttpClient()
-            val params = HashMap<String, String>()
-            var myOfflineDBHELPER = OFFLINELOGDBHELPER(this@LoginActivity)
-
-            params["idno"] = myAttendance.userName
-            params["action"] = myAttendance.userAction
-            params["time"] = myAttendance.userLoginTime
-            params["date"] = myAttendance.userLoginDate
-            params["long"] = myAttendance.userLong
-            params["lat"] = myAttendance.userLat
-
-
-            val jsonObject = JSONObject(params)
-            val JSON = MediaType.parse("application/json; charset=utf-8")
-            val body = RequestBody.create(JSON, jsonObject.toString())
-
-            val mRequestInterested = Request.Builder()
-                .url(urlInterested)
-                .post(body)
-                .build()
-            mClientInterested.newCall(mRequestInterested).execute()
-
-            var response = mClientInterested.newCall(mRequestInterested).execute()
-            runOnUiThread {
-                Log.e(TAG,"Responses - " +
-                        "${response.isSuccessful} " +
-                        "${response.body()} ")
-                if(response.isSuccessful){
-                    displayNotification(myAttendance)
-
-
-                }
-                if(response.isSuccessful){
-                    Log.e(TAG,"deleted or not "+myOfflineDBHELPER.deleteFrom(myAttendance.userName,myAttendance.userLoginTime))
-
-
-                }
-
-            }
 
 
 
-
-        }
-
-    }
     fun verifyLoginsettings(idno: String, password: String) {
 
 
@@ -427,8 +510,8 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
                         val loginFeed = mGSON.fromJson(mBody, Login::class.java)
                         Log.e(TAG," verify Login - "+loginFeed.message)
                         if(loginFeed.message.equals("Login Successful.")){
-                            val myIntent = Intent(this@LoginActivity, SettingsAdmin::class.java)
-                            startActivity(myIntent)
+
+                            getUserLevel(idno)
 
                         }
                         else{
@@ -448,8 +531,8 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
     }
 
     fun verifyLoginb(idno: String, password: String) {
-
-
+//        var myIntent = Intent(this, Samsung_camera::class.java)
+//        startActivityForResult(myIntent, 1)
         var booleanSuccess:Boolean=false
         doAsync {
 
@@ -474,6 +557,7 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
                             if(loginFeed.message.equals("Login Successful.")){
                                 Log.e(TAG,"Success Login")
+                                checkGeofence(lat.toDouble(),long.toDouble())
                                 saveLogin()
                                 var myIntent = Intent(this@LoginActivity, SurfaceCamera::class.java)
                                     startActivityForResult(myIntent, 1)
@@ -550,7 +634,6 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
     fun showIPentry() {
         var myBoolean = false
-        var myAPIATAY = APIATAY(this)
         val dialogBuilder = AlertDialog.Builder(this)
         val inflater = this.layoutInflater
         val dialogView = inflater.inflate(R.layout.dialog_api, null)
@@ -563,32 +646,22 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
         dialogBuilder.setView(dialogView)
 
-        val b = dialogBuilder.create()
+        ipDialog= dialogBuilder.create()
 
-        b.show()
+        ipDialog.show()
 
 
         mySubmitIP.setOnClickListener {
 
+           // verifyLoginsettings()
+            verifyApi(myUserFolder.text.toString(),myUserIP.text.toString())
 
 
-               myAPIATAY.addOFFlineDATA(myUserFolder.text.toString(), myUserIP.text.toString())
-                Log.e(TAG,myAPIATAY.updateTable(myUserIP.text.toString(),myUserFolder.text.toString()).toString())
-                Log.e(TAG, myAPIATAY.apilist.toString())
-
-            b.dismiss()
 
         }
 
 
-        try {
 
-            Log.e(TAG, myAPIATAY.apilist.toString())
-        }
-        catch (e:Exception){
-
-            print(e)
-        }
 
     }
 
@@ -642,11 +715,86 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
             }
         }
     }
+    fun checkGeofence(userLat:Double,userLong:Double){
 
+
+        var check = 0
+        Log.e(TAG,"GEOFENCE")
+        Log.e(TAG,globalGeofenceList.data.size.toString())
+
+        for(i in 0 until globalGeofenceList.data.size){
+
+   var myLocation =  Location("user location")
+       myLocation.latitude = lat.toDouble()
+       myLocation.longitude = long.toDouble()
+   var geoLocation = Location("geofence location")
+            myLocation.latitude = globalGeofenceList.data[i].latitude.toDouble()
+            myLocation.longitude = globalGeofenceList.data[i].latitude.toDouble()
+            var distanceKM = myLocation.distanceTo(geoLocation) / 1000
+     Log.e(TAG ,"distance between user and geofence   ${globalGeofenceList.data[i].workplace_name}  -  "+distanceKM.toString())
+            var okok = myLocation.distanceTo(myLocation)/ 1000
+            Log.e(TAG,okok.toString())
+
+   }
+     //       Location.distanceBetween(lat.toDouble(),long.toDouble(),globalGeofenceList.data[i].latitude.toDouble(),globalGeofenceList.data[i].longitude.toDouble())
+
+//            doAsync {
+//                Log.e(
+//                    TAG,
+//                    "Distancess of Geofence   from latitude ${globalGeofenceList.data[i].latitude}   ${globalGeofenceList.data[i].workplace_name}" + CalculationByDistance(
+//                        LatLng(userLat, userLong),
+//                        LatLng(
+//                            globalGeofenceList.data[i].latitude.toDouble(),
+//                            globalGeofenceList.data[i].longitude.toDouble()
+//                        )
+//                    ).toString()
+//                )
+//                Log.e(
+//                    TAG,
+//                    "Distancess of Geofence  0 distance -  ${globalGeofenceList.data[i].workplace_name}" + CalculationByDistance(
+//                        LatLng(userLat, userLong),
+//                        (LatLng(userLat, userLong))
+//                    ).toString()
+//                )
+//            }
+
+
+
+
+    }
+    fun CalculationByDistance(StartP: LatLng, EndP: LatLng): Double {
+doAsync {
+    val Radius = 6371// radius of earth in Km
+    val lat1 = StartP.latitude
+    val lat2 = EndP.latitude
+    val lon1 = StartP.longitude
+    val lon2 = EndP.longitude
+    val dLat = Math.toRadians(lat2 - lat1)
+    val dLon = Math.toRadians(lon2 - lon1)
+    val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + (Math.cos(Math.toRadians(lat1))
+            * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
+            * Math.sin(dLon / 2))
+    val c = 2 * Math.asin(Math.sqrt(a))
+    val valueResult = Radius * c
+    val km = valueResult / 1
+    val newFormat = DecimalFormat("####")
+    val kmInDec = Integer.valueOf(newFormat.format(km))
+    val meter = valueResult % 1000
+    val meterInDec = Integer.valueOf(newFormat.format(meter))
+    Log.i(
+        "Radius Value", "" + valueResult + "   KM  " + kmInDec
+                + " Meter   " + meterInDec
+    )
+    var distance = Radius * c
+    Log.e(TAG, distance.toString() + " CalculateByDISTANCE")
+
+}
+        return 123123321.123123
+
+    }
     fun getAddress(location: Location) {
-
         //Log.e(TAG, "getting address")
-        doAsync {
+   doAsync {
             val geocoder: Geocoder = Geocoder(this@LoginActivity, Locale.getDefault())
             val addresses: List<Address>
 
@@ -701,9 +849,40 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 Log.e(TAG,"Getting Location")
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         locationListener = object : LocationListener {
+            @SuppressLint("SimpleDateFormat")
             override fun onLocationChanged(location: Location) {
+                Log.e(TAG,"GPS TIME - "+location.time.toString())
+                Log.e(TAG,"GPS TIME - "+location.time.toString())
+                Log.e(TAG,"GPS TIME - "+location.time.toString())
 
-                try {
+
+                var  format = SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+var date = Date(location.time)
+
+                var milis = location.elapsedRealtimeNanos / 1000000
+
+                Log.e(TAG,"Altitude "+ location.altitude.toString())
+                Log.e(TAG, "locatio"+location.accuracy.toShort())
+                Log.e(TAG," ${milis}-Last bootime"+location.elapsedRealtimeNanos.toString()+" \n last boot time 2 ${SystemClock.elapsedRealtime()}\n")
+
+
+                elapsedTime = milis.toString()
+
+
+              var mydate =  Date(System.currentTimeMillis()
+                        - milis
+              )
+                Log.e(TAG,"boot time - "+format.format(mydate)+"  current time - "+getCurrentTime())
+
+
+                    try {
+
+
+
+
+
+
+
                     getAddress(location)
                     var mLongtitude = location.longitude.toString()
                     var mLatitude = location.latitude.toString()
@@ -711,6 +890,10 @@ Log.e(TAG,"Getting Location")
                     tv_long.text = mLongtitude
                     lat = mLatitude
                     long = mLongtitude
+
+
+
+
                 } catch (e: Exception) {
                     Log.e(TAG, "Exception raised $e")
                 }
@@ -946,7 +1129,7 @@ Log.e(TAG,"Getting Location")
         expanded_layout.setImageViewBitmap(R.id.iv_notif_image,myAttendance.userBitmap)
         expanded_layout.setTextViewText(R.id.notif_id,myAttendance.userName)
         expanded_layout.setTextViewText(R.id.notif_action,myAttendance.userAction)
-        expanded_layout.setTextViewText(R.id.notif_date_time,myAttendance.userLoginDate+" "+myAttendance.userLoginTime)
+        expanded_layout.setTextViewText(R.id.notif_date_time,myAttendance.userLoginTime)
 
         var customChannel = myAttendance.userName+notif_id.toString()
         createNotificationChannel(customChannel)
@@ -1008,8 +1191,6 @@ Log.e(TAG,"Getting Location")
         return result
     }
 
-
-
     private fun getImageUri(context: Context, inImage: Bitmap): Uri {
         val bytes = ByteArrayOutputStream()
         inImage.compress(Bitmap.CompressFormat.PNG, 100, bytes)
@@ -1017,7 +1198,6 @@ Log.e(TAG,"Getting Location")
 
         return Uri.parse(path)
     }
-
 
     @SuppressLint("NewApi")
     internal fun createNotificationChannel(Channel: String) {
@@ -1031,7 +1211,7 @@ Log.e(TAG,"Getting Location")
         notificationManager!!.createNotificationChannel(channel)
 
     }
-    private fun pushOfflineData() {
+    private fun pushOfflineData(serverTime:Long) {
         var myOfflineDBHELPER = OFFLINELOGDBHELPER(this)
 
         var myOfflineDataList = myOfflineDBHELPER.offlineDataList
@@ -1040,14 +1220,8 @@ Log.e(TAG,"Getting Location")
 
             for (i in 0 until myOfflineDataList.size) {
 
-               // push_userlog(myOfflineDataList.get(i))
-                push_userlog2(myOfflineDataList.get(i))
-                Log.e(
-                    TAG,
-                    "OFFLINEDATA - " + myOfflineDataList.get(i).userAction + "  " + myOfflineDataList.get(i).userName + " " + myOfflineDataList.get(
-                        i
-                    )
-                        .userLoginDate + " " + myOfflineDataList.get(i).userLoginTime + " " + myOfflineDataList.get(i).userBitmap
+                trialFunc(myOfflineDataList[i],serverTime)
+                Log.e(TAG, "OFFLINEDATA - " + myOfflineDataList.get(i).userElapsedTime + "  " + myOfflineDataList.get(i).userName + " " + myOfflineDataList.get(i).userLoginDate + " " + myOfflineDataList.get(i).userLoginTime + " " + myOfflineDataList.get(i).userBitmap
                 )
             }
 
@@ -1056,6 +1230,37 @@ Log.e(TAG,"Getting Location")
 
 
     }
+    fun trialFunc(myAttendance:Attendance,myServerTime:Long){
+        Log.e(TAG,"trialFunc")
+lateinit var myLogDate:String
+        lateinit var myLogTime:String
+
+        var difference =   SystemClock.elapsedRealtime().toInt()  -  myAttendance.userElapsedTime.toInt()
+//        if(difference>1800000){
+            Log.e(TAG,"IF")
+
+        //    var  format = SimpleDateFormat("MMM dd, yyyy h:mm:ss a")
+            var  format1 = SimpleDateFormat("MMM dd, yyyy")
+            var  format2 = SimpleDateFormat("h:mm:ss a")
+
+            var mydate =  Date(myServerTime - difference.toLong())
+
+
+        myLogTime = format2.format(mydate)
+        myLogDate = format1.format(mydate)
+
+        Log.e(TAG,"Current time -"+myAttendance.userLoginTime+" comapre $myLogTime "+"\n Current Date -"+myAttendance.userLoginDate+" compare $myLogDate ")
+
+
+        myAttendance.userLoginTime = myLogTime
+        myAttendance.userLoginDate = myLogDate
+
+push_userlog2(myAttendance)
+
+
+    }
+
+
 
     private fun isNetworkAvailable(): Boolean {
         lateinit var connectivityManager: ConnectivityManager
@@ -1070,6 +1275,7 @@ Log.e(TAG,"Getting Location")
 
     private val wifiStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+
             Log.e(TAG,intent.action)
             doAsync {
              uiThread {
@@ -1090,6 +1296,11 @@ Log.e(TAG,"Getting Location")
                     Log.e(TAG, "Have Wifi")
                     haveWifi = true
                     login_mode = "online"
+                    doAsync {
+                        Thread.sleep(2000)
+
+                    }
+
 
                     doAsync {
                         try {
@@ -1135,6 +1346,7 @@ Log.e(TAG,"Getting Location")
         }
     }
 
+
     fun textListener() {
         et_username.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -1176,4 +1388,95 @@ Log.e(TAG,"Getting Location")
         })
 
     }
+    fun stringToDate(){
+        val currentServerDate = globalServerTime.message.date+" "+globalServerTime.message.time
+        val format = SimpleDateFormat("MMM dd,yyyy h:mm:ss a")
+        try {
+            val date = format.parse(currentServerDate)
+            System.out.println(date)
+            Log.e(TAG,"current date server - ${date.toString()}"+"\n" +" milis - "+
+                    date.time.toString()+"---"+System.currentTimeMillis())
+                globalServertimemilis = date.time.toString()
+            pushOfflineData(date.time)
+        } catch (e: ParseException) {
+            e.printStackTrace()
+
+            Log.e(TAG,"Atay ra ahh")
+        }
+
+    }
+    fun getServerTime() {
+
+
+        var booleanSuccess:Boolean=false
+        doAsync {
+
+            val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/current_time"
+            val mClient = OkHttpClient()
+            val mRequest = Request.Builder()
+                .url(url)
+                .build()
+
+            mClient.newCall(mRequest).enqueue(object : Callback {
+                override fun onFailure(call: Call?, e: IOException?) {
+                    Log.e("error", "${e.toString()}")
+                }
+
+                override fun onResponse(call: Call?, response: Response?) {
+                    try {
+                        val mBody = response?.body()?.string()
+                        val mGSON = GsonBuilder().create()
+                        val currentTimeListFeed = mGSON.fromJson(mBody, CurrentTimeList::class.java)
+                        //    val currentTIme = mGSON.fromJson(mBody,CurrentTime::class.java)
+                        Log.e(TAG, " verify Login - ${currentTimeListFeed.message}"+ response!!.isSuccessful.toString())
+                        // Log.e(TAG,currentTIme.toString()+response!!.isSuccessful)
+                        globalServerTime = currentTimeListFeed
+                        stringToDate()
+
+                    } catch (e: java.lang.Exception) {
+                        Log.e("error", "$e")
+
+                    }
+                }
+
+            })
+
+        }
+    }
+    fun getGeofences() {
+
+
+        doAsync {
+
+            val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/geofence_controller/geofence_entries"
+            val mClient = OkHttpClient()
+            val mRequest = Request.Builder()
+                .url(url)
+                .build()
+
+            mClient.newCall(mRequest).enqueue(object : Callback {
+                override fun onFailure(call: Call?, e: IOException?) {
+                    Log.e("error", "${e.toString()}")
+                }
+
+                override fun onResponse(call: Call?, response: Response?) {
+                    try {
+                        val mBody = response?.body()?.string()
+                        val mGSON = GsonBuilder().create()
+                        val geofenceListFeed = mGSON.fromJson(mBody, GeofenceModelList::class.java)
+                        Log.e(TAG, " verify Login - ${geofenceListFeed.data.size}")
+                        globalGeofenceList = geofenceListFeed
+
+                    } catch (e: Exception) {
+                        Log.e("error", "$e")
+
+                    }
+                }
+
+            })
+
+        }
+    }
+
+
 }

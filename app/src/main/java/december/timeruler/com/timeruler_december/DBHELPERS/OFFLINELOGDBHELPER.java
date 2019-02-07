@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
-import december.timeruler.com.timeruler_december.Attendance;
+import december.timeruler.com.timeruler_december.Model.Attendance;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -25,7 +25,9 @@ public class OFFLINELOGDBHELPER extends SQLiteOpenHelper {
     private static final String COL7 ="userLoginDate" ;
     private static final String COL8 = "userAction";
     private static final String COL9 = "userImage";
+    private static final String COL11 = "userElapsedTime";
     private static final String COL10 = "flower";
+
 
     private static final String TABLE_NAME = "OFFLINEDATATABLE";
     private static final String TAG = "OfflineDBHELPER";
@@ -51,6 +53,7 @@ public class OFFLINELOGDBHELPER extends SQLiteOpenHelper {
                 + COL7 + " TEXT, "
                 + COL8 + " TEXT, "
                 + COL9 + " TEXT, "
+                + COL11 + " TEXT, "
                 + COL10 + " TEXT )";
 
         sqLiteDatabase.execSQL(CREATE_TABLE_OFFLINE_DATA);
@@ -84,6 +87,7 @@ public class OFFLINELOGDBHELPER extends SQLiteOpenHelper {
         contentValues.put(COL7, offlineAttendance.getUserLoginDate());
         contentValues.put(COL8,offlineAttendance.getUserAction());
         contentValues.put(COL9,getBytes(offlineAttendance.getUserBitmap()));
+        contentValues.put(COL11,offlineAttendance.userElapsedTime);
         Log.e(TAG,"byteArray - "+getBytes(offlineAttendance.getUserBitmap()).toString());
 
         long result = db.insert(TABLE_NAME, null, contentValues);
@@ -114,6 +118,9 @@ public class OFFLINELOGDBHELPER extends SQLiteOpenHelper {
                         ,data.getString(6)
                         ,data.getString(7),
                         getImage(data.getBlob(8)));
+
+
+                myOfflineAttendance.userElapsedTime = data.getString(9);
                 OfflineList.add(myOfflineAttendance);
             } while (data.moveToNext());
         }

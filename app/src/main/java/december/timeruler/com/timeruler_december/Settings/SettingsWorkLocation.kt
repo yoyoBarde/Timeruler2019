@@ -1,9 +1,10 @@
-package december.timeruler.com.timeruler_december
+package december.timeruler.com.timeruler_december.Settings
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.FragmentTransaction
-import kotlinx.android.synthetic.main.activity_settings_work_location.*
+import december.timeruler.com.timeruler_december.Fragments.FragmentLocationMethod1
+import december.timeruler.com.timeruler_december.R
 
 class SettingsWorkLocation : AppCompatActivity() {
    lateinit var manager:FragmentTransaction
@@ -12,11 +13,14 @@ class SettingsWorkLocation : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings_work_location)
 
-        workFrameLayout
+       // workFrameLayout
 
 
         manager = supportFragmentManager.beginTransaction()
-        manager!!.replace(R.id.workFrameLayout,FragmentLocationMethod1())
+        manager!!.replace(
+            R.id.workFrameLayout,
+            FragmentLocationMethod1()
+        )
         manager!!.commit()
     }
 }

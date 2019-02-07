@@ -1,4 +1,4 @@
-package december.timeruler.com.timeruler_december;
+package december.timeruler.com.timeruler_december.Model;
 
 import android.Manifest;
 import android.app.Activity;
@@ -33,7 +33,7 @@ public class JavaToKotlin {
     String TAG = "Locaiton";
 
 
-    void getLocationWhenOffline(Context context) {
+   public  void getLocationWhenOffline(Context context) {
         Log.e(TAG,"javatokotlin");
         String address = " ";
         String city = " ";
@@ -89,4 +89,5 @@ public class JavaToKotlin {
 
         }
     };
+
 }
