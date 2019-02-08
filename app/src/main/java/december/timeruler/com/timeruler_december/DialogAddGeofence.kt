@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.TextView
-import december.timeruler.com.timeruler_december.Model.Dismisscallback
 import android.view.InflateException
 import android.widget.EditText
 import android.widget.ImageView
@@ -18,34 +17,30 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
+import december.timeruler.com.timeruler_december.Model.Dismisscallback
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.fragment_add_geofence.*
 import org.jetbrains.anko.support.v4.toast
 
 
 class DialogAddGeofence : DialogFragment() {
-    lateinit var lat:TextView
-    lateinit var long:TextView
-    lateinit var tv_place:TextView
-    lateinit var buttonSet:Button
-    lateinit var workPlace:EditText
-    lateinit var placeAutocompletesd:PlaceAutocompleteFragment
+    lateinit var lat: TextView
+    lateinit var long: TextView
+    lateinit var tv_place: TextView
+    lateinit var buttonSet: Button
+    lateinit var workPlace: EditText
+    lateinit var placeAutocompletesd: PlaceAutocompleteFragment
     val TAG = "DialogAddGeofence"
-    var viewss:View? = null
-
+    var viewss: View? = null
 
 
     companion object {
 
-        lateinit var latc:String
-        lateinit var longc:String
-        lateinit var placec:String
-        lateinit var addressc:String
+        lateinit var latc: String
+        lateinit var longc: String
+        lateinit var placec: String
+        lateinit var addressc: String
     }
-
-
-
-
 
 
     fun newInstance(): DialogAddGeofence {
@@ -55,59 +50,54 @@ class DialogAddGeofence : DialogFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
 
-                if(viewss!=null){
+        if (viewss != null) {
 
-                  var  parentt = viewss?.parent as ViewGroup
-                    if (parentt != null)
-                        parentt.removeView(viewss)
+            var parentt = viewss?.parent as ViewGroup
+            if (parentt != null)
+                parentt.removeView(viewss)
 
-                }
+        }
         try {
 
-            viewss = inflater.inflate(R.layout.fragment_add_geofence, container,false)
-        }
-        catch (e:InflateException){
+            viewss = inflater.inflate(R.layout.fragment_add_geofence, container, false)
+        } catch (e: InflateException) {
 
         }
 
 
-
-
-          var   my_button= viewss?.findViewById(R.id.button_close_dialog) as ImageView
+        var my_button = viewss?.findViewById(R.id.button_close_dialog) as ImageView
         my_button.setOnClickListener {
 
             dismiss()
         }
 
 
-            lat = viewss?.findViewById(R.id.geoLat3) as TextView
-            tv_place= viewss?.findViewById(R.id.placesText) as TextView
-            long = viewss?.findViewById(R.id.geoLong3) as TextView
-            buttonSet = viewss?.findViewById(R.id.button_set_geofence) as Button
+        lat = viewss?.findViewById(R.id.geoLat3) as TextView
+        tv_place = viewss?.findViewById(R.id.placesText) as TextView
+        long = viewss?.findViewById(R.id.geoLong3) as TextView
+        buttonSet = viewss?.findViewById(R.id.button_set_geofence) as Button
         workPlace = viewss?.findViewById(R.id.et_workPlacename) as EditText
 
 
+        var mDismisscallback = FragmentAddGeofence() as (Dismisscallback)?
+
+        buttonSet.setOnClickListener {
 
 
-            val mDismisscallback = (activity) as Dismisscallback
-
-            buttonSet.setOnClickListener {
-
-
-                if (workPlace.text.isEmpty()) {
-                    workPlace.error = "Invalid"
-                }
-                else {
-                    placec = workPlace.text.toString()
-                    workPlace.text.clear()
-
-                    mDismisscallback.dismissListener()
-                }
-
-
+            if (workPlace.text.isEmpty()) {
+                workPlace.error = "Invalid"
+            } else {
+                placec = workPlace.text.toString()
+                workPlace.text.clear()
+                mDismisscallback?.dismissListener()
+                dismiss()
             }
 
-        placeAutocompletesd = activity!!.fragmentManager!!.findFragmentById(R.id.google_search) as PlaceAutocompleteFragment
+
+        }
+
+        placeAutocompletesd =
+                activity!!.fragmentManager!!.findFragmentById(R.id.google_search) as PlaceAutocompleteFragment
         placeAutocompletesd?.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
 
@@ -116,10 +106,10 @@ class DialogAddGeofence : DialogFragment() {
                 long.text = place.latLng.longitude.toString()
                 tv_place.text = place.name.toString()
 
-                latc=lat.text.toString()
+                latc = lat.text.toString()
                 longc = long.text.toString()
                 addressc = tv_place.text.toString()
-                Log.e(TAG,"atay ra ahh")
+                Log.e(TAG, "atay ra ahh")
                 toast("Success")
             }
 
@@ -128,7 +118,7 @@ class DialogAddGeofence : DialogFragment() {
             }
         })
 
-    return  viewss
+        return viewss
 
 
     }
@@ -138,6 +128,7 @@ class DialogAddGeofence : DialogFragment() {
 
 
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(DialogFragment.STYLE_NORMAL, R.style.Sample)
@@ -166,21 +157,21 @@ class DialogAddGeofence : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-      //  dialog.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        //  dialog.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
 
         return dialog
     }
 
     override fun onDestroy() {
-        Log.e(TAG,"destroy")
-            super.onDestroy()
+        Log.e(TAG, "destroy")
+        super.onDestroy()
 
         workPlace.text.clear()
         placeAutocompletesd.setText(" ")
-        lat.text ="0.0"
+        lat.text = "0.0"
         long.text = "0.0"
-        tv_place.text= " "
+        tv_place.text = " "
 
         // var myFragment =
     }
@@ -188,18 +179,19 @@ class DialogAddGeofence : DialogFragment() {
     override fun onResume() {
         super.onResume()
 //
-        Log.e(TAG,"resume")
-
+        Log.e(TAG, "resume")
 
 
     }
 
     override fun onPause() {
         super.onPause()
-        Log.e(TAG,"onPause")
+        Log.e(TAG, "onPause")
 
     }
 
 
-    }
+}
+
+
 

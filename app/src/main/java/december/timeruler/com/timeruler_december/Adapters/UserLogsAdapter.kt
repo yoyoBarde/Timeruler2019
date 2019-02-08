@@ -48,7 +48,7 @@ class UserLogsAdapter(private val context: Context, private val userlogslist : L
 
         }
         else
-            holder.constraintBackground.setBackgroundColor(context.resources.getColor(R.color.light_gray))
+            holder.constraintBackground.setBackgroundColor(context.resources.getColor(R.color.row_color))
 
     }
 

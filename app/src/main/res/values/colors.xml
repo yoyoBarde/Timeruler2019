@@ -19,6 +19,12 @@
     <color name="black_alpha_80">#80000000</color>
     <color name="light_gray">#D3D3D3</color>
     <color name="silver">#C0C0C0</color>
+    <color name="row_color">#ededed</color>
+
+    <color name="whiteop50">#80FFFFFF</color>
+
+
+
 
 
     <color name="black_80">#B3000000</color>

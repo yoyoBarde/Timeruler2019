@@ -30,7 +30,7 @@ import org.json.JSONObject
 import java.util.HashMap
 
 
-class GeofenceAdapter(private val context: Context,  var userlogslist : ArrayList<GeofenceModelp>) : RecyclerView.Adapter<GeofenceAdapter.ViewHolder>(){
+class GeofenceAdapter( var userlogslist : ArrayList<GeofenceModelp>) : RecyclerView.Adapter<GeofenceAdapter.ViewHolder>(){
 
 val TAG ="GeofenceAdapter"
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
@@ -49,7 +49,7 @@ val TAG ="GeofenceAdapter"
         holder.workPlacename.text = myGeofence.workplace_name
         holder.address.text=myGeofence.workplace_address
         holder.buttonClose.setOnClickListener {
-            deleteGeofenceDialog(position)
+            deleteGeofenceDialog(position,holder)
 
 
 
@@ -61,9 +61,9 @@ val TAG ="GeofenceAdapter"
 
     }
 
-    fun deleteGeofenceDialog(positioned: Int) {
+    fun deleteGeofenceDialog(positioned: Int,holder: ViewHolder) {
 
-        val dialogBuilder = AlertDialog.Builder(context)
+        val dialogBuilder = AlertDialog.Builder(holder.itemView.context)
         dialogBuilder.setCancelable(false)
 
 
@@ -89,28 +89,12 @@ val TAG ="GeofenceAdapter"
 
 
     }
+fun notifySetCHange(myModel:GeofenceModelp){
 
-//    internal fun initGpsDisabledDialog(context: Context) {
-//
-//        val builder = AlertDialog.Builder(context)
-//        val action = android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
-//        val message = "Please turn on GPS to find current location."
-//
-//        builder.setMessage(message)
-//            .setCancelable(false)
-//            .setPositiveButton(
-//                "SETTINGS"
-//            ) { d, id ->
-//                startActivity(Intent(action))
-//                d.dismiss()
-//            }
-//
-//        mGPSDialog = builder.create()
-//        mGPSDialog.setOnShowListener {
-//            val btnPossitive = mGPSDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-//            btnPossitive.setOnClickListener { startActivity(Intent(action)) }
-//        }
-//    }
+    this.userlogslist.add(myModel)
+    notifyDataSetChanged()
+
+}
 
     fun deleteGeofence(idno:String){
         Log.e(TAG,idno+" --- ID delete geofence")

@@ -38,7 +38,7 @@ companion object {
 
         }
         else
-            holder.backgroundColor.setBackgroundColor(context.resources.getColor(R.color.light_gray))
+            holder.backgroundColor.setBackgroundColor(context.resources.getColor(R.color.row_color))
 
 
             holder.viewLog.setOnClickListener {

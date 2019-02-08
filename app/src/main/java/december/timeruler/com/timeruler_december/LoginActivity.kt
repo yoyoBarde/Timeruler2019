@@ -84,6 +84,7 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
     }
 
     val TAG = "LoginActivity"
+
     companion object {
         lateinit var usernamesettings: String
         lateinit var username: String
@@ -91,18 +92,19 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
         lateinit var lat: String
         lateinit var long: String
         lateinit var login_mode: String
-        lateinit var userLevel:String
-        lateinit var elapsedTime:String
+        lateinit var userLevel: String
+        lateinit var elapsedTime: String
 
     }
+
     var globalPushOnce = 0
-    lateinit var ipDialog:AlertDialog
-   lateinit var globalServertimemilis:String
-    lateinit var filepath:File
-    lateinit var filename:String
-    lateinit var globalGeofenceList:GeofenceModelList
+    lateinit var ipDialog: AlertDialog
+    lateinit var globalServertimemilis: String
+    lateinit var filepath: File
+    lateinit var filename: String
+    lateinit var globalGeofenceList: GeofenceModelList
     var notif_id = 1023
-    var haveWifi=false
+    var haveWifi = false
     lateinit var mGPSDialog: AlertDialog
     var globalSavePasswordBoolean: Boolean = false
     private var locationManager: LocationManager? = null
@@ -110,7 +112,7 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
     private lateinit var myLOGINDATADBHELPER: LOGINDATADBHELPER
 
     private var client: FusedLocationProviderClient? = null
-    lateinit var globalServerTime:CurrentTimeList
+    lateinit var globalServerTime: CurrentTimeList
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,12 +124,12 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
         getGeofences()
 
-       // startActivity(Intent(this,SettingsAdmin::class.java))
+        // startActivity(Intent(this,SettingsAdmin::class.java))
         var myApiAtay = APIATAY(this)
-        if(myApiAtay.apilist.size==0) {
+        if (myApiAtay.apilist.size == 0) {
             showIPentry()
         }
-      //  getUserLevel("000002")
+        //  getUserLevel("000002")
 //            Log.e(TAG, userLevel)
         setupDigitalClock()
 
@@ -137,7 +139,7 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
         var intentFilter = IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         registerReceiver(wifiStateReceiver, intentFilter)
         getLoginData()
-       // textListener()
+        // textListener()
 //        savedInstanceState ?: supportFragmentManager.beginTransaction()
 //            .replace(R.id.container, Camera2BasicFragment.newInstance())
 //            .commit()
@@ -156,36 +158,37 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
             username = et_username.text.toString()
             password = et_password.text.toString()
 
-        if(login_mode.equals("online")) {
-            Log.e(TAG,"online")
+            if (login_mode.equals("online")) {
+                Log.e(TAG, "online")
 
-            verifyLoginb(username, password)
+                verifyLoginb(username, password)
 
-        }
-            else{
-            var success = false
-                Log.e(TAG,"offline = "+splashScreen.globalUserList)
-            for (i in 0 until splashScreen.globalUserList.size) {
+            } else {
+                var success = false
+                Log.e(TAG, "offline = " + splashScreen.globalUserList)
+                for (i in 0 until splashScreen.globalUserList.size) {
 
 
-                    Log.e(TAG,splashScreen.globalUserList[i].userName)
-                if(splashScreen.globalUserList[i].userName.equals(username) && splashScreen.globalUserList[i].userPass.equals(password)){
-                    saveLogin()
-                    success = true
-                    var myIntent = Intent(this, SurfaceCamera::class.java)
-                    startActivityForResult(myIntent, 1)
+                    Log.e(TAG, splashScreen.globalUserList[i].userName)
+                    if (splashScreen.globalUserList[i].userName.equals(username) && splashScreen.globalUserList[i].userPass.equals(
+                            password
+                        )
+                    ) {
+                        saveLogin()
+                        success = true
+                        var myIntent = Intent(this, SurfaceCamera::class.java)
+                        startActivityForResult(myIntent, 1)
+
+
+                    }
 
 
                 }
-
+                if (!success)
+                    Toast.makeText(this@LoginActivity, "Enter valid credentials", Toast.LENGTH_SHORT).show()
 
 
             }
-            if(!success)
-            Toast.makeText(this@LoginActivity,"Enter valid credentials",Toast.LENGTH_SHORT).show()
-
-
-        }
 
 
         }
@@ -229,12 +232,11 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
         submit.setOnClickListener {
 
-            Log.e(TAG,"submit "+username.text.toString())
+            Log.e(TAG, "submit " + username.text.toString())
             usernamesettings = username.text.toString()
             doAsync {
-                verifyLoginsettings(username.text.toString(),password.text.toString())
+                verifyLoginsettings(username.text.toString(), password.text.toString())
             }
-
 
 
         }
@@ -246,67 +248,69 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
 
     }
-    fun saveLogin(){
+
+    fun saveLogin() {
         var myLoginDataList = myLOGINDATADBHELPER.getLoginData("wala lng")
 
-        if (globalSavePasswordBoolean){
+        if (globalSavePasswordBoolean) {
             var credentialExist = false
             for (i in 0 until myLoginDataList.size) {
 
-                Log.e(TAG, "credentials"+myLoginDataList[i].userName +" "+ myLoginDataList[i].userPass)
-                if(username.equals(myLoginDataList[i].userName)){
+                Log.e(TAG, "credentials" + myLoginDataList[i].userName + " " + myLoginDataList[i].userPass)
+                if (username.equals(myLoginDataList[i].userName)) {
                     credentialExist = true
                 }
             }
             if (!credentialExist)
                 Log.e(TAG, myLOGINDATADBHELPER.addLoginDATA(username, password).toString())
 
-        }
-        else {
+        } else {
             myLOGINDATADBHELPER.dropTable2()
 
         }
     }
-    fun getUserLevel(username:String){
+
+    fun getUserLevel(username: String) {
         var myUserlevel = "default"
         doAsync {
 
             val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/personal_information/$username"
             val mClient = OkHttpClient()
             val mRequest = Request.Builder()
-                        .url(url)
-                        .build()
+                .url(url)
+                .build()
 
-                    mClient.newCall(mRequest).enqueue(object : Callback {
-                        override fun onFailure(call: Call?, e: IOException?) {
-                            Log.e("error", "${e.toString()}")
-                        }
+            mClient.newCall(mRequest).enqueue(object : Callback {
+                override fun onFailure(call: Call?, e: IOException?) {
+                    Log.e("error", "${e.toString()}")
+                }
 
-                        override fun onResponse(call: Call?, response: Response?) {
-                            try {
-                                val mBody = response?.body()?.string()
-                                val mGSON = GsonBuilder().create()
-                                val personalInfo = mGSON.fromJson(mBody, PersonalInformation::class.java)
-                                runOnUiThread {
-                                    userLevel = personalInfo.data.userlevel
-                                    Log.e(TAG, username+" userLevel - " + userLevel)
+                override fun onResponse(call: Call?, response: Response?) {
+                    try {
+                        val mBody = response?.body()?.string()
+                        val mGSON = GsonBuilder().create()
+                        val personalInfo = mGSON.fromJson(mBody, PersonalInformation::class.java)
+                        runOnUiThread {
+                            userLevel = personalInfo.data.userlevel
+                            Log.e(TAG, username + " userLevel - " + userLevel)
 
-                                    if(userLevel.equals("ADMIN")) {
-                                        val myIntent = Intent(this@LoginActivity, SettingsAdmin::class.java)
-                                        startActivity(myIntent)
-                                    }
-                                    else{
-                                        val myIntent = Intent(this@LoginActivity,
-                                            SettingsUsers::class.java)
-                                        startActivity(myIntent)
-                                    }
-
-                                }
-                            } catch (e: Exception) {
-                                Log.e("error", "$e")
-                                Toast.makeText(this@LoginActivity,"Enter valid credentials",Toast.LENGTH_SHORT).show()
-
+                            if (userLevel.equals("ADMIN")) {
+                                val myIntent = Intent(this@LoginActivity, SettingsAdmin::class.java)
+                                startActivity(myIntent)
+                            } else {
+                                val myIntent = Intent(
+                                    this@LoginActivity,
+                                    SettingsUsers::class.java
+                                )
+                                startActivity(myIntent)
                             }
+
+                        }
+                    } catch (e: Exception) {
+                        Log.e("error", "$e")
+                        Toast.makeText(this@LoginActivity, "Enter valid credentials", Toast.LENGTH_SHORT).show()
+
+                    }
 
                 }
 
@@ -314,7 +318,8 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
         }
     }
-    fun verifyApi(foldername:String,ipaddress:String){
+
+    fun verifyApi(foldername: String, ipaddress: String) {
         var myUserlevel = "default"
         doAsync {
 
@@ -333,12 +338,12 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
                     try {
                         val mBody = response?.body()?.string()
                         val mGSON = GsonBuilder().create()
-                       // val personalInfo         = mGSON.fromJson(mBody, PersonalInformation::class.java)
-                            Log.e(TAG,"APICHECK - ${response?.isSuccessful}")
-                        if(response!!.isSuccessful) {
+                        // val personalInfo         = mGSON.fromJson(mBody, PersonalInformation::class.java)
+                        Log.e(TAG, "APICHECK - ${response?.isSuccessful}")
+                        if (response!!.isSuccessful) {
                             var myAPIATAY = APIATAY(this@LoginActivity)
 
-                            myAPIATAY.addOFFlineDATA(foldername,ipaddress)
+                            myAPIATAY.addOFFlineDATA(foldername, ipaddress)
                             Log.e(
                                 TAG,
                                 myAPIATAY.updateTable(ipaddress, foldername).toString()
@@ -346,11 +351,10 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
                             Log.e(TAG, myAPIATAY.apilist.toString())
                             ipDialog.dismiss()
 
-                        }
-                        else toast("Invalid API !")
+                        } else toast("Invalid API !")
                     } catch (e: Exception) {
                         Log.e("error", "$e")
-                        Toast.makeText(this@LoginActivity,"Enter valid credentials",Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@LoginActivity, "Enter valid credentials", Toast.LENGTH_SHORT).show()
 
                     }
 
@@ -362,8 +366,8 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
     }
 
     fun push_userlog2(myAttendance: Attendance) {
-        var myLogTime:String = " "
-        var myLogDate:String = " "
+        var myLogTime: String = " "
+        var myLogDate: String = " "
         Log.e(TAG, myAttendance.toString())
         Log.e(TAG, "giataykudasai")
         doAsync {
@@ -372,8 +376,6 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
             val formBodyBuilder = MultipartBody.Builder()
             Log.e(TAG, "sulod" + myAttendance.toString())
             var myOfflineDBHELPER = OFFLINELOGDBHELPER(this@LoginActivity)
-
-
 
 
 //            if(myAttendance.userElapsedTime.toLong()>SystemClock.elapsedRealtime())
@@ -407,7 +409,6 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 //
 //            }
 //            else{
-
 
 
             formBodyBuilder.setType(MultipartBody.FORM)
@@ -485,47 +486,45 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
     }
 
 
-
     fun verifyLoginsettings(idno: String, password: String) {
 
 
-        var booleanSuccess:Boolean=false
+        var booleanSuccess: Boolean = false
         var atay = "*ad"
 
-            val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/login/$idno/$password"
-            val mClient = OkHttpClient()
-            val mRequest = Request.Builder()
-                .url(url)
-                .build()
+        val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/login/$idno/$password"
+        val mClient = OkHttpClient()
+        val mRequest = Request.Builder()
+            .url(url)
+            .build()
 
-            mClient.newCall(mRequest).enqueue(object : Callback {
-                override fun onFailure(call: Call?, e: IOException?) {
-                    Log.e("error", "${e.toString()}")
-                }
+        mClient.newCall(mRequest).enqueue(object : Callback {
+            override fun onFailure(call: Call?, e: IOException?) {
+                Log.e("error", "${e.toString()}")
+            }
 
-                override fun onResponse(call: Call?, response: Response?) {
-                    try {
-                        val mBody = response?.body()?.string()
-                        val mGSON = GsonBuilder().create()
-                        val loginFeed = mGSON.fromJson(mBody, Login::class.java)
-                        Log.e(TAG," verify Login - "+loginFeed.message)
-                        if(loginFeed.message.equals("Login Successful.")){
+            override fun onResponse(call: Call?, response: Response?) {
+                try {
+                    val mBody = response?.body()?.string()
+                    val mGSON = GsonBuilder().create()
+                    val loginFeed = mGSON.fromJson(mBody, Login::class.java)
+                    Log.e(TAG, " verify Login - " + loginFeed.message)
+                    if (loginFeed.message.equals("Login Successful.")) {
 
-                            getUserLevel(idno)
+                        getUserLevel(idno)
 
-                        }
-                        else{
-                            Toast.makeText(this@LoginActivity,"Invalid Credentials",Toast.LENGTH_SHORT).show()
-                        }
-
-
-                        } catch (e: Exception) {
-                        Log.e("error", "$e")
-
+                    } else {
+                        Toast.makeText(this@LoginActivity, "Invalid Credentials", Toast.LENGTH_SHORT).show()
                     }
-                }
 
-            })
+
+                } catch (e: Exception) {
+                    Log.e("error", "$e")
+
+                }
+            }
+
+        })
 
 
     }
@@ -533,7 +532,7 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
     fun verifyLoginb(idno: String, password: String) {
 //        var myIntent = Intent(this, Samsung_camera::class.java)
 //        startActivityForResult(myIntent, 1)
-        var booleanSuccess:Boolean=false
+        var booleanSuccess: Boolean = false
         doAsync {
 
             val url = "http://10.224.1.160/${SurfaceCamera.APINAME}/user_controller/login/$idno/$password"
@@ -552,20 +551,20 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
                         val mBody = response?.body()?.string()
                         val mGSON = GsonBuilder().create()
                         val loginFeed = mGSON.fromJson(mBody, Login::class.java)
-                        Log.e(TAG," verify Login - "+loginFeed.message)
+                        Log.e(TAG, " verify Login - " + loginFeed.message)
                         runOnUiThread {
 
-                            if(loginFeed.message.equals("Login Successful.")){
-                                Log.e(TAG,"Success Login")
-                                checkGeofence(lat.toDouble(),long.toDouble())
+                            if (loginFeed.message.equals("Login Successful.")) {
+                                Log.e(TAG, "Success Login")
+                                checkGeofence()
                                 saveLogin()
                                 var myIntent = Intent(this@LoginActivity, SurfaceCamera::class.java)
-                                    startActivityForResult(myIntent, 1)
+                                startActivityForResult(myIntent, 1)
 
                                 booleanSuccess = true
-                            }else{
+                            } else {
                                 booleanSuccess = false
-                                Log.e(TAG,"Fail Login")
+                                Log.e(TAG, "Fail Login")
 
                                 uiThread {
                                     Toast.makeText(this@LoginActivity, "Login Failed", Toast.LENGTH_LONG).show()
@@ -638,7 +637,7 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
         val inflater = this.layoutInflater
         val dialogView = inflater.inflate(R.layout.dialog_api, null)
 
-        val myUserIP= dialogView.findViewById(R.id.dialog_et_ip) as EditText
+        val myUserIP = dialogView.findViewById(R.id.dialog_et_ip) as EditText
         val myUserFolder = dialogView.findViewById(R.id.dialog_et_folder) as EditText
         val mySubmitIP = dialogView.findViewById(R.id.submit_ip) as Button
 
@@ -646,25 +645,21 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
 
         dialogBuilder.setView(dialogView)
 
-        ipDialog= dialogBuilder.create()
+        ipDialog = dialogBuilder.create()
 
         ipDialog.show()
 
 
         mySubmitIP.setOnClickListener {
 
-           // verifyLoginsettings()
-            verifyApi(myUserFolder.text.toString(),myUserIP.text.toString())
-
+            // verifyLoginsettings()
+            verifyApi(myUserFolder.text.toString(), myUserIP.text.toString())
 
 
         }
 
 
-
-
     }
-
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -676,7 +671,7 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
         if (resultCode == SurfaceCamera.REQUEST_CODE) {
             var userLogMode = data!!.getStringExtra("surface_mode")
             var userAttendance = data!!.getParcelableExtra<AttendanceParce>("userAttendance")
-            Log.e(TAG, "request "+userAttendance.userAction + userAttendance.userLoginDate)
+            Log.e(TAG, "request " + userAttendance.userAction + userAttendance.userLoginDate)
             showLoginDialogSuccess(userAttendance, userLogMode)
 
 
@@ -715,53 +710,27 @@ class LoginActivity : AppCompatActivity(), SurfaceCamera.PassData {
             }
         }
     }
-    fun checkGeofence(userLat:Double,userLong:Double){
 
+    fun checkGeofence() {
+            Log.e(TAG,"check if user is within geofence")
 
-        var check = 0
-        Log.e(TAG,"GEOFENCE")
-        Log.e(TAG,globalGeofenceList.data.size.toString())
-
-        for(i in 0 until globalGeofenceList.data.size){
-
-   var myLocation =  Location("user location")
-       myLocation.latitude = lat.toDouble()
-       myLocation.longitude = long.toDouble()
-   var geoLocation = Location("geofence location")
-            myLocation.latitude = globalGeofenceList.data[i].latitude.toDouble()
-            myLocation.longitude = globalGeofenceList.data[i].latitude.toDouble()
-            var distanceKM = myLocation.distanceTo(geoLocation) / 1000
-     Log.e(TAG ,"distance between user and geofence   ${globalGeofenceList.data[i].workplace_name}  -  "+distanceKM.toString())
-            var okok = myLocation.distanceTo(myLocation)/ 1000
-            Log.e(TAG,okok.toString())
-
-   }
-     //       Location.distanceBetween(lat.toDouble(),long.toDouble(),globalGeofenceList.data[i].latitude.toDouble(),globalGeofenceList.data[i].longitude.toDouble())
-
-//            doAsync {
-//                Log.e(
-//                    TAG,
-//                    "Distancess of Geofence   from latitude ${globalGeofenceList.data[i].latitude}   ${globalGeofenceList.data[i].workplace_name}" + CalculationByDistance(
-//                        LatLng(userLat, userLong),
-//                        LatLng(
-//                            globalGeofenceList.data[i].latitude.toDouble(),
-//                            globalGeofenceList.data[i].longitude.toDouble()
-//                        )
-//                    ).toString()
-//                )
-//                Log.e(
-//                    TAG,
-//                    "Distancess of Geofence  0 distance -  ${globalGeofenceList.data[i].workplace_name}" + CalculationByDistance(
-//                        LatLng(userLat, userLong),
-//                        (LatLng(userLat, userLong))
-//                    ).toString()
-//                )
-//            }
-
-
+        var userLocation = Location("User Location")
+        userLocation.latitude = lat.toDouble()
+        userLocation.longitude = long.toDouble()
+        for( i in 0 until globalGeofenceList.data.size){
+        var geofenceLocation = Location("Geofence")
+            geofenceLocation.latitude = globalGeofenceList.data[i].latitude.toDouble()
+            geofenceLocation.longitude = globalGeofenceList.data[i].longitude.toDouble()
+            Log.e(TAG,geofenceLocation.latitude.toString()+"   JY  "+geofenceLocation.longitude.toString())
+            var distance = userLocation.distanceTo(geofenceLocation)/1000
+            var distanceFOrmatted = String.format("%.2f", distance)
+                Log.e(TAG,globalGeofenceList.data[i].workplace_name + " $distanceFOrmatted ")
+        }
 
 
     }
+
+
     fun CalculationByDistance(StartP: LatLng, EndP: LatLng): Double {
 doAsync {
     val Radius = 6371// radius of earth in Km

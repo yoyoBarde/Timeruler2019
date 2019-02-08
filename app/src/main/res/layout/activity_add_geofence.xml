@@ -9,17 +9,46 @@
 >
 
 
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:visibility="gone"
+                  app:layout_constraintEnd_toEndOf="parent"
+                  app:layout_constraintStart_toStartOf="parent"
+                  app:layout_constraintTop_toBottomOf="@+id/constraintLayout10" android:id="@+id/linearLayout5">
+        <Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Add Geofence"
+                android:layout_weight="1"
+                android:id="@+id/button_add_geofence"
+            android:background="@color/colorPrimary"
+                android:textColor="@color/whiteop50"
+
+        />
+        <Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/button_restrict_user"
+
+                android:text="Restict User"
+                android:background="@color/colorPrimary"
+                android:textColor="@color/white"
+
+        />
+
+
+    </LinearLayout>
     <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-                                                 android:layout_height="wrap_content"
-                                                 android:id="@+id/constraintLayout10">
+            android:layout_height="wrap_content"
+            android:id="@+id/constraintLayout10"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+    >
         <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/default_large_row_size"
                       android:background="@drawable/gradient"
                       android:orientation="horizontal"
                       app:layout_constraintTop_toTopOf="parent"
                       app:layout_constraintEnd_toEndOf="parent"
                       app:layout_constraintStart_toStartOf="parent" android:id="@+id/linearLayout3"
-                      app:layout_constraintHorizontal_bias="0.0"></LinearLayout>
+                      app:layout_constraintHorizontal_bias="0.0"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                   android:textColor="@color/white"
                   android:textSize="20sp"
@@ -32,7 +61,6 @@
                   app:layout_constraintBottom_toBottomOf="@+id/imageView3"/>
 
 
-
         <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
                    android:src="@mipmap/ic_back"
 
@@ -41,50 +69,57 @@
                    app:layout_constraintBottom_toBottomOf="@+id/linearLayout3" android:id="@+id/imageView3"/>
     </android.support.constraint.ConstraintLayout>
 
-    <android.support.v7.widget.RecyclerView
-            android:id="@+id/recyclerViewGeofence"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/constraintLayout9"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintVertical_bias="1.0" android:layout_marginTop="8dp"/>
+    <LinearLayout
 
 
-    <Button android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Add"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="16dp" android:id="@+id/button_addGeofence" android:layout_marginEnd="16dp"
+                    android:layout_width="0dp" android:layout_height="5dp"
+                  android:background="@color/colorPrimary"
+                  android:orientation="horizontal"
+                  android:visibility="gone"
+                  app:layout_constraintEnd_toEndOf="parent"
+                  app:layout_constraintStart_toStartOf="parent"
+                  app:layout_constraintHorizontal_bias="1.0"
+                  app:layout_constraintTop_toBottomOf="@+id/constraintLayout9" android:id="@+id/linearLayout4"
+
     />
 
+    <android.support.design.widget.TabLayout
+            app:tabBackground="@drawable/gradient"
+            app:tabIconTint="@color/green"
+            app:tabTextColor="@color/white"
+            android:id="@+id/tabLayout_payslip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#fff"
+            app:tabIndicator="@color/white"
 
-    <android.support.constraint.ConstraintLayout android:layout_width="wrap_content"
-                                                 android:layout_height="wrap_content"
-                                                 app:layout_constraintEnd_toEndOf="parent"
-                                                 android:layout_marginEnd="8dp" android:layout_marginTop="8dp"
-                                                 app:layout_constraintTop_toBottomOf="@+id/constraintLayout10"
-                                                 app:layout_constraintStart_toStartOf="parent"
-                                                 android:layout_marginStart="8dp" android:id="@+id/constraintLayout9">
+            android:layout_alignParentBottom="true"
+            app:tabMaxWidth="0dp"
 
-        <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                   android:src="@drawable/ic_geofence"
-                   app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
-                   app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="8dp"
-                   android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="parent"
-                   android:id="@+id/imageView8"/>
+            app:tabGravity="fill"
+            app:tabMode="fixed"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:tabIndicatorColor="@color/colorAccent"
+            app:tabSelectedTextColor="@color/colorAccent"
+            app:layout_constraintTop_toTopOf="@+id/frameGeofence"
+            app:layout_constraintHorizontal_bias="0.0"/>
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                  android:text="Add or Remove Geofence"
-                  android:textSize="20sp"
-                  android:textColor="@color/black"
 
-                  android:layout_marginTop="8dp"
-                  app:layout_constraintTop_toBottomOf="@+id/imageView8"
-                  app:layout_constraintStart_toStartOf="@+id/imageView8"
-                  app:layout_constraintEnd_toEndOf="@+id/imageView8"/>
+    <android.support.v4.view.ViewPager
+            android:id="@+id/viewPager_payslip"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
 
-    </android.support.constraint.ConstraintLayout>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tabLayout_payslip"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <FrameLayout android:layout_width="0dp" android:layout_height="0dp"
+                 app:layout_constraintEnd_toEndOf="parent"
+                 app:layout_constraintStart_toStartOf="parent"
+                 android:id="@+id/frameGeofence"
+                 app:layout_constraintBottom_toBottomOf="parent"
+                 app:layout_constraintTop_toBottomOf="@+id/linearLayout5"/>
+
 </android.support.constraint.ConstraintLayout>
